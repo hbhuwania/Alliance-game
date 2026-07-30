@@ -610,9 +610,31 @@ function finish(){
 
   show("result"); if(frac>=0.72) burst();
   const text=shareText(rank);
-  el("share").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
-  el("copy").onclick=async()=>{ try{ await navigator.clipboard.writeText(text);
-    el("copy").textContent="Copied ✓"; setTimeout(()=>el("copy").textContent="Copy result text",1600);}catch(e){ alert(text);} };
+  el("share").onclick=()=>doShare(text, el("share"));
+  el("copy").onclick=()=>copyText(text, el("copy"));
+}
+
+/* ---- robust sharing (works inside WhatsApp's in-app browser) ---- */
+async function doShare(text, btn){
+  // 1) Native share sheet — most reliable on phones, lets them pick WhatsApp
+  if(navigator.share){
+    try{ await navigator.share({text}); return; }
+    catch(e){ if(e && e.name==="AbortError") return; }  // user dismissed
+  }
+  // 2) WhatsApp link — same-tab navigation (window.open is often blocked in in-app browsers)
+  const url="https://wa.me/?text="+encodeURIComponent(text);
+  let w=null; try{ w=window.open(url,"_blank"); }catch(e){}
+  if(!w){ try{ location.href=url; return; }catch(e){} copyText(text, btn); }
+}
+async function copyText(text, btn){
+  const done=()=>{ if(btn){ const o=btn.dataset.label||btn.textContent; btn.dataset.label=o;
+    btn.textContent="Copied ✓ — now paste in WhatsApp"; setTimeout(()=>btn.textContent=o,2200); } };
+  try{ await navigator.clipboard.writeText(text); done(); return true; }catch(e){}
+  try{ const ta=document.createElement("textarea"); ta.value=text; ta.setAttribute("readonly","");
+    ta.style.position="fixed"; ta.style.top="0"; ta.style.opacity="0"; document.body.appendChild(ta);
+    ta.focus(); ta.select(); const ok=document.execCommand("copy"); document.body.removeChild(ta);
+    if(ok){ done(); return true; } }catch(e){}
+  alert(text); return false;
 }
 function shareText(rank){
   return `🕹️ ALLIANCE HQ — ${WEEK_LABEL}\n`+
