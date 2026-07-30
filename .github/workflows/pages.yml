@@ -2,7 +2,7 @@ name: Deploy Alliance HQ to GitHub Pages
 
 on:
   push:
-    branches: ["main", "claude/alliance-india-game-0jdoyo"]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:

@@ -27,14 +27,17 @@ Built to be dropped into a **WhatsApp group** — one link, play on any phone, c
 
 ## 🚀 Get a shareable link (for WhatsApp)
 
-The game is a single file (`index.html`). Publish it free with **GitHub Pages**:
+The game is a single file (`index.html`). Publish it free with **GitHub Pages**. You only do this once.
 
-1. Push this repo to GitHub (already done if you're reading this there).
-2. On GitHub: **Settings → Pages**.
-3. Under **Build and deployment → Source**, choose **GitHub Actions** (a workflow is already included), _or_ pick **Deploy from a branch** → branch `main` (or your branch) → `/root`.
-4. Wait ~1 minute. GitHub gives you a link like
-   `https://<your-username>.github.io/Alliance-game/`
+**Fastest way (recommended — no build needed):**
+1. On GitHub, open **Settings → Pages**.
+2. Under **Build and deployment → Source**, choose **Deploy from a branch**.
+3. Branch: **`claude/alliance-india-game-0jdoyo`** (or `main` after you merge) · Folder: **`/ (root)`** · **Save**.
+4. Wait ~1 minute, then your link is live:
+   **`https://hbhuwania.github.io/Alliance-game/`**
 5. Paste that link into your WhatsApp group. 🎉
+
+**Via GitHub Actions instead:** a workflow (`.github/workflows/pages.yml`) is included and runs on the `main` branch. To use it, set **Settings → Pages → Source: GitHub Actions**, then merge to `main` (or click **Run workflow**). _Note: the first time, GitHub may need you to enable Pages in Settings once — the workflow token can't turn it on by itself._
 
 _No GitHub Pages? You can also just open `index.html` on any phone, or host it on any static host (Netlify Drop, Vercel, etc.)._
 
