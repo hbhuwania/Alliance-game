@@ -108,6 +108,7 @@
   .rtag.ace{color:var(--violet);background:rgba(123,107,255,.12);border:1px solid rgba(123,107,255,.45)}
   .rtag.normal{color:var(--cyan);background:rgba(37,224,212,.08);border:1px solid rgba(37,224,212,.35)}
   .rtag.bonus{color:var(--amber);background:rgba(255,203,69,.10);border:1px solid rgba(255,203,69,.45)}
+  .rtag.riddle{color:#8ee9ff;background:rgba(37,224,212,.10);border:1px solid rgba(37,224,212,.5)}
 
   .q{font-size:20px;line-height:1.35;margin:14px 0 4px;font-weight:700}
   .opts{display:grid;gap:10px;margin-top:14px}
@@ -186,6 +187,7 @@
       <div class="rnd"><b>⚡ Rapid Challenges</b><span>Beat the clock for more points</span></div>
       <div class="rnd"><b>🎯 Secret Mission</b><span>Bonus round — double points</span></div>
       <div class="rnd"><b>🗡️ The Veto</b><span>Betrayal twist — don't get fooled</span></div>
+      <div class="rnd"><b>🧩 Riddle</b><span>HQ brain-teaser — 60s, double points</span></div>
       <div class="rnd"><b>👑 Ace of the Week</b><span>The final power question</span></div>
     </div>
 
@@ -202,6 +204,12 @@
     <button class="btn gold" id="bonusBtn">🎁 Daily Bonus<span class="badgeDot hidden" id="bonusDot"></span></button>
     <button class="btn alt" id="howBtn">How to play</button>
     <br><button class="linkbtn" id="boardBtn">🌐 Group leaderboard: Off</button>
+
+    <div class="lb hidden" id="homeLb" style="margin-top:20px">
+      <h3><span>🏆 This week's players</span><span style="color:var(--amber)" id="homeLbWeek"></span></h3>
+      <div class="sub" id="homeLbSub">Top scores so far</div>
+      <div id="homeLbList"></div>
+    </div>
   </section>
 
   <!-- ===================== QUIZ ===================== -->
@@ -395,6 +403,28 @@ const BANK = [
   {q:"VETO TRAP: Which of these is TRUE about the game?", opts:["No alliance is permanent","Everyone wins ₹50 lakh","There are 30 contestants","It airs only on weekends"], a:0, tier:"casual", type:"veto",
    ex:"<b>No alliance is permanent</b> — trust can turn to betrayal any moment."},
 
+  // ---------- Riddles (mental challenge · 60s · double points) ----------
+  {q:"RIDDLE: We enter as two, but I can shatter in a blink — inside HQ I shift faster than you can think. What am I?", opts:["An alliance","A camera","The prize money","The exit door"], a:0, tier:"casual", type:"riddle",
+   ex:"An <b>alliance</b> — easily formed, easily broken. That's the whole game."},
+  {q:"RIDDLE: The more you take away from me, the bigger I become. What am I?", opts:["A hole","A secret","A score","A team"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>hole</b> — the more you dig out, the bigger it gets."},
+  {q:"RIDDLE: I rule every room in the bunker and decide who stays or goes, yet I have no face and no heart. Who am I?", opts:["The System","The host","A wildcard","The Ace"], a:0, tier:"casual", type:"riddle",
+   ex:"<b>The System</b> — the unseen power running HQ."},
+  {q:"RIDDLE: What must be broken before you can use it?", opts:["An egg","A promise","A record","A lock"], a:0, tier:"casual", type:"riddle",
+   ex:"An <b>egg</b>."},
+  {q:"RIDDLE: The more of these you share, the fewer you keep — until a betrayal spills them all. What?", opts:["Secrets","Points","Snacks","Votes"], a:0, tier:"casual", type:"riddle",
+   ex:"<b>Secrets</b> — the real currency of trust and betrayal."},
+  {q:"RIDDLE: I have keys but open no locks, space but no room; you can enter, but you can't go inside. What am I?", opts:["A keyboard","A vault","A house","A phone"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>keyboard</b>."},
+  {q:"RIDDLE: I can travel all around HQ while never leaving my corner. What am I?", opts:["A stamp","A camera","A rumour","The Ace"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>stamp</b> — it travels the world from the corner of an envelope."},
+  {q:"RIDDLE: Two allies are only as strong as one thing between them. Remove it and only rivals remain. What is it?", opts:["Trust","Points","A symbol","The prize"], a:0, tier:"casual", type:"riddle",
+   ex:"<b>Trust</b> — without it, an alliance is just rivalry."},
+  {q:"RIDDLE: What gets counted, traded and stolen in the bunker — and without it, you're eliminated?", opts:["Points","Time","Selfies","Keys"], a:0, tier:"casual", type:"riddle",
+   ex:"<b>Points</b> — the only currency inside HQ."},
+  {q:"RIDDLE: What is so fragile that saying its name breaks it?", opts:["Silence","Trust","A rumour","An alliance"], a:0, tier:"casual", type:"riddle",
+   ex:"<b>Silence</b> — say the word and it's gone."},
+
   {q:"ACE OF THE WEEK: Alliance holds a first for Prime Video worldwide. What is it?", opts:["First scripted daily drama","First-ever original global DAILY reality series","First AI-hosted show","First fully live show"], a:1, tier:"casual", type:"ace",
    ex:"Alliance is Prime Video's <b>first-ever original global daily reality series</b> — a new episode every single day."},
   {q:"ACE OF THE WEEK: What best sums up how to WIN Alliance?", opts:["Balance trust, strategy and deception the longest","Be the fastest runner","Get the most votes on day one","Never talk to anyone"], a:0, tier:"superfan", type:"ace",
@@ -455,19 +485,24 @@ function weeklyQuiz(diff){
   const normals=BANK.filter(x=>(x.type||"normal")==="normal"&&allow(x));
   const missions=BANK.filter(x=>x.type==="mission"&&allow(x));
   const vetos=BANK.filter(x=>x.type==="veto"&&allow(x));
+  const riddles=BANK.filter(x=>x.type==="riddle"&&allow(x));
   const aces=BANK.filter(x=>x.type==="ace"&&allow(x));
   const acesAll=aces.length?aces:BANK.filter(x=>x.type==="ace");
   let core=seededShuffle(normals,rng).slice(0,5);
   let mis=seededShuffle(missions,rng).slice(0,2);
-  let vet=seededShuffle(vetos,rng).slice(0,2);
+  let vet=seededShuffle(vetos,rng).slice(0,1);
+  let rid=seededShuffle(riddles,rng).slice(0,1);
   let ace=seededShuffle(acesAll,rng)[0];
-  let mid=seededShuffle([...core,...mis,...vet],rng);
+  let mid=seededShuffle([...core,...mis,...vet,...rid],rng);
   if(mid.length<N_QUESTIONS-1){ const extra=seededShuffle(BANK.filter(x=>x.type!=="ace"&&allow(x)&&!mid.includes(x)),rng);
     while(mid.length<N_QUESTIONS-1&&extra.length) mid.push(extra.pop()); }
   mid=mid.slice(0,N_QUESTIONS-1);
   return [...mid, ace];
 }
 function dailyQuestion(){ const rng=rngFor("BONUS::"+DATE_ID); const pool=BANK.filter(x=>x.type!=="ace"); return seededShuffle(pool,rng)[0]; }
+/* per-question timer + scoring multiplier */
+function qTime(item){ return item.time || ((item&&item.type==="riddle")?60:TIME); }
+function multFor(t){ return t==="mission"?2 : t==="ace"?3 : t==="riddle"?2 : t==="veto"?1.5 : 1; }
 
 /* ============================================================
    LEADERBOARD STORE (per week, combined quiz + bonus totals)
@@ -536,8 +571,9 @@ function start(){
   show("quiz"); render();
 }
 function render(){
-  clearInterval(state.timer); state.answered=false; state.left=TIME;
+  clearInterval(state.timer); state.answered=false;
   const item=state.list[state.i]; const type=item.type||"normal";
+  const T=qTime(item); state.qtime=T; state.left=T;
   el("qcount").textContent=`Q ${state.i+1} / ${state.list.length}`;
   el("streakPill").textContent=`🔥 ${state.streak}`;
   el("score").textContent=`${state.score} pts`;
@@ -546,7 +582,8 @@ function render(){
   el("expl").className="expl"; el("expl").innerHTML=item.ex||"";
   el("next").classList.add("hidden");
   const map={ normal:["normal","⚡ Challenge"], mission:["mission","🎯 Secret Mission · Double Points"],
-    veto:["veto","🗡️ The Veto · Trap Question"], ace:["ace","👑 Ace of the Week · Final Power"] };
+    veto:["veto","🗡️ The Veto · Trap Question"], riddle:["riddle","🧩 Riddle · 60 seconds · Double Points"],
+    ace:["ace","👑 Ace of the Week · Final Power"] };
   el("rtag").className="rtag "+map[type][0]; el("rtag").textContent=map[type][1];
   el("question").textContent=item.q;
   const idx=item.opts.map((_,k)=>k); shuffle(idx); const correctPos=idx.indexOf(item.a);
@@ -555,16 +592,16 @@ function render(){
     btn.innerHTML=`<span class="k">${String.fromCharCode(65+pos)}</span>${item.opts[origK]}`;
     btn.onclick=()=>answer(pos,correctPos,box,type); box.appendChild(btn); });
   el("tbar").style.transform="scaleX(1)"; const started=Date.now();
-  state.timer=setInterval(()=>{ const elapsed=(Date.now()-started)/1000; state.left=Math.max(0,TIME-elapsed);
-    el("tbar").style.transform=`scaleX(${state.left/TIME})`;
+  state.timer=setInterval(()=>{ const elapsed=(Date.now()-started)/1000; state.left=Math.max(0,T-elapsed);
+    el("tbar").style.transform=`scaleX(${state.left/T})`;
     if(state.left<=0){ clearInterval(state.timer); if(!state.answered) answer(-1,correctPos,box,type); } },100);
 }
 function answer(pos, correctPos, box, type){
   if(state.answered) return; state.answered=true; clearInterval(state.timer);
   [...box.children].forEach((b,k)=>{ b.disabled=true;
     if(k===correctPos) b.classList.add("correct"); else if(k===pos) b.classList.add("wrong"); else b.classList.add("dim"); });
-  const ok=pos===correctPos; const mult=type==="mission"?2:type==="ace"?3:type==="veto"?1.5:1;
-  if(ok){ const speed=Math.round((state.left/TIME)*80); const streakBonus=state.streak*20;
+  const ok=pos===correctPos; const mult=multFor(type);
+  if(ok){ const speed=Math.round((state.left/(state.qtime||TIME))*80); const streakBonus=state.streak*20;
     const gained=Math.round((BASE+speed+streakBonus)*mult);
     state.score+=gained; state.correct++; state.streak++; state.best=Math.max(state.best,state.streak);
     el("feed").className="feed good";
@@ -589,7 +626,7 @@ const RANKS=[
 function rankFor(f){ let r=RANKS[0]; for(const x of RANKS) if(f>=x.min) r=x; return r; }
 
 function finish(){
-  const maxApprox=state.list.reduce((s,q)=>{ const m=q.type==="mission"?2:q.type==="ace"?3:q.type==="veto"?1.5:1; return s+(BASE+80)*m; },0);
+  const maxApprox=state.list.reduce((s,q)=>s+(BASE+80)*multFor(q.type),0);
   const frac=Math.min(1,state.score/maxApprox); const rank=rankFor(frac);
   el("rankIcon").textContent=rank.icon; el("rankName").textContent=rank.name;
   el("finalPts").textContent=state.score.toLocaleString();
@@ -708,12 +745,12 @@ function burst(){ const c=el("confetti"); c.innerHTML="";
 }
 
 /* ---- leaderboard render ---- */
-function renderLB(list, meName){
-  const box=el("lbList"); box.innerHTML="";
-  if(!list||!list.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">No scores yet — you\'re the first to play this week!</div>'; return; }
+function renderInto(box, list, meName){
+  box.innerHTML="";
+  if(!list||!list.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">No scores yet — be the first to play this week!</div>'; return; }
   const medals=["🥇","🥈","🥉"]; let marked=false;
   list.slice(0,10).forEach((r,i)=>{
-    const isMe=!marked && String(r.name).toLowerCase()===String(meName).toLowerCase(); if(isMe) marked=true;
+    const isMe=meName && !marked && String(r.name).toLowerCase()===String(meName).toLowerCase(); if(isMe) marked=true;
     const row=document.createElement("div"); row.className="lbrow"+(isMe?" me":"");
     row.innerHTML=`<span class="rk">${i<3?`<span class="medal">${medals[i]}</span>`:i+1}</span>`+
       `<span class="nm">${escapeHtml(r.name)}${isMe?" (you)":""}</span>`+
@@ -721,6 +758,7 @@ function renderLB(list, meName){
     box.appendChild(row);
   });
 }
+function renderLB(list, meName){ renderInto(el("lbList"), list, meName); }
 
 /* ---- home screen: winner banner + bonus dot + group board ---- */
 function groupLink(){
@@ -733,10 +771,20 @@ function paintWinner(arr){
   el("winnerBanner").innerHTML=`<span class="crown">👑</span>Last week's <b>Ace of the Week</b><br><b>${escapeHtml(w.name)}</b> — ${Number(w.score).toLocaleString()} pts <span style="color:var(--muted)">(${LAST_WEEK_LABEL})</span>`;
   el("winnerBanner").classList.remove("hidden");
 }
+function paintHomeLb(arr, live){
+  if(!arr||!arr.length){ el("homeLb").classList.add("hidden"); return; }
+  el("homeLbWeek").textContent=WEEK_LABEL;
+  el("homeLbSub").textContent = live ? "Live group scores this week" : "Top scores on this device this week";
+  renderInto(el("homeLbList"), arr, null);
+  el("homeLb").classList.remove("hidden");
+}
 function refreshHome(){
   // last week winner (local first, then cloud if available)
   paintWinner(boardArray(readWeek(LAST_WEEK_ID)));
   if(SHARED_ENDPOINT){ cloudGet(LAST_WEEK_ID).then(a=>{ if(a&&a.length) paintWinner(a); }); }
+  // this week's leaderboard preview (local first, then live cloud)
+  paintHomeLb(localBoard(), false);
+  if(SHARED_ENDPOINT){ cloudGet(WEEK_ID).then(a=>{ if(a) paintHomeLb(a, true); }); }
   // daily bonus availability
   el("bonusDot").classList.toggle("hidden", bonusDoneToday());
   el("bonusBtn").firstChild.textContent = bonusDoneToday() ? "🎁 Daily Bonus (done today)" : "🎁 Daily Bonus";
