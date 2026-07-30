@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="theme-color" content="#0a0e1a" />
 <title>Alliance HQ — Trivia Challenge</title>
-<meta name="description" content="A fan trivia game for Prime Video's reality show Alliance. Enter HQ, earn points, and see if you can become Ace of the Week. New challenge every week." />
+<meta name="description" content="A fan trivia game for Prime Video's reality show Alliance. Enter HQ, earn points, and see if you can become Ace of the Week. New challenge every week, plus a daily bonus." />
 <meta property="og:title" content="Alliance HQ — Weekly Trivia Challenge" />
-<meta property="og:description" content="Think you follow Alliance closely? Enter HQ, beat the clock, and climb from Eliminated to Master of the System. New quiz every week." />
+<meta property="og:description" content="Think you follow Alliance closely? Enter HQ, beat the clock, and climb from Eliminated to Master of the System. New quiz every week + daily bonus." />
 <meta property="og:type" content="website" />
 <style>
   :root{
@@ -56,6 +56,10 @@
   .weekchip{display:inline-block;margin-top:12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
     color:var(--amber);border:1px solid rgba(255,203,69,.4);background:rgba(255,203,69,.08);
     padding:6px 12px;border-radius:999px;font-weight:700}
+  .winner{margin-top:14px;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,203,69,.4);
+    background:linear-gradient(180deg,rgba(255,203,69,.12),rgba(255,203,69,.03));text-align:center;font-size:14px;line-height:1.4}
+  .winner .crown{font-size:22px;display:block;margin-bottom:2px}
+  .winner b{color:var(--amber)}
   p.lead{color:var(--muted);line-height:1.55;font-size:15px;margin:12px 0 4px}
   .rounds{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 6px;text-align:left}
   .rnd{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:rgba(255,255,255,.02)}
@@ -74,10 +78,15 @@
   .btn{display:block;width:100%;margin-top:16px;padding:16px;border:none;border-radius:13px;
     font-size:16px;font-weight:800;letter-spacing:.02em;cursor:pointer;color:#06121f;
     background:linear-gradient(120deg,var(--cyan),var(--violet));box-shadow:var(--shadow);
-    transition:transform .06s ease,filter .2s}
+    transition:transform .06s ease,filter .2s;position:relative}
   .btn:active{transform:translateY(1px) scale(.995)}
   .btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
   .btn.wa{background:linear-gradient(120deg,#25D366,#128C7E);color:#06210f}
+  .btn.gold{background:linear-gradient(120deg,var(--amber),#ff9d3d);color:#241500}
+  .badgeDot{position:absolute;top:-5px;right:-5px;width:14px;height:14px;border-radius:50%;
+    background:var(--red);box-shadow:0 0 0 3px var(--panel);animation:pulse 1.4s infinite}
+  .linkbtn{background:none;border:none;color:#7f8fb8;font-size:12px;cursor:pointer;margin-top:16px;
+    text-decoration:underline;display:inline-block}
   .foot{margin-top:auto;padding-top:22px;text-align:center;color:#5f6f92;font-size:11.5px;line-height:1.5}
   .foot a{color:#7f8fb8}
 
@@ -98,6 +107,7 @@
   .rtag.veto{color:var(--red);background:rgba(255,92,108,.10);border:1px solid rgba(255,92,108,.4)}
   .rtag.ace{color:var(--violet);background:rgba(123,107,255,.12);border:1px solid rgba(123,107,255,.45)}
   .rtag.normal{color:var(--cyan);background:rgba(37,224,212,.08);border:1px solid rgba(37,224,212,.35)}
+  .rtag.bonus{color:var(--amber);background:rgba(255,203,69,.10);border:1px solid rgba(255,203,69,.45)}
 
   .q{font-size:20px;line-height:1.35;margin:14px 0 4px;font-weight:700}
   .opts{display:grid;gap:10px;margin-top:14px}
@@ -164,6 +174,9 @@
     <span class="sys"><span class="dot"></span> The System is online</span>
     <h2>Weekly Trivia Challenge</h2>
     <div class="weekchip" id="weekChip">This Week's Challenge</div>
+
+    <div class="winner hidden" id="winnerBanner"></div>
+
     <p class="lead">Sixteen players. Eight duos. One HQ run by <b style="color:var(--ink)">The System</b>.
       Answer fast to bank <b style="color:var(--amber)">points</b> — the only currency in the bunker.
       Everyone gets the <b style="color:var(--ink)">same set this week</b>, so it's a fair fight —
@@ -186,7 +199,9 @@
     </div>
 
     <button class="btn" id="go">Enter HQ →</button>
+    <button class="btn gold" id="bonusBtn">🎁 Daily Bonus<span class="badgeDot hidden" id="bonusDot"></span></button>
     <button class="btn alt" id="howBtn">How to play</button>
+    <br><button class="linkbtn" id="boardBtn">🌐 Group leaderboard: Off</button>
   </section>
 
   <!-- ===================== QUIZ ===================== -->
@@ -208,13 +223,29 @@
     <button class="btn hidden" id="next">Next →</button>
   </section>
 
+  <!-- ===================== DAILY BONUS ===================== -->
+  <section id="bonus" class="card hidden">
+    <div class="hud">
+      <span class="pill">🎁 Daily Bonus</span>
+      <span class="pill" id="bonusDate"></span>
+      <span class="pts" id="bonusPts">+0</span>
+    </div>
+    <span class="rtag bonus">🎁 One shot · Same question for everyone today</span>
+    <div class="timer"><i id="btbar"></i></div>
+    <div class="q" id="bq">…</div>
+    <div class="opts" id="bopts"></div>
+    <div class="feed" id="bfeed"></div>
+    <div class="expl" id="bexpl"></div>
+    <button class="btn" id="bdone">← Back to HQ</button>
+  </section>
+
   <!-- ===================== RESULT ===================== -->
   <section id="result" class="card center hidden">
     <div class="rankbadge" id="rankIcon">👑</div>
     <div class="sys" style="border-color:var(--line);color:var(--muted)"><span>Final verdict from The System</span></div>
     <div class="rankname" id="rankName">Ace of the Week</div>
     <div class="bigpts" id="finalPts">0</div>
-    <div style="color:var(--muted);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:4px">points banked</div>
+    <div style="color:var(--muted);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:4px">points this game</div>
 
     <div class="statrow">
       <div class="stat"><b id="stCorrect">0/0</b><span>Correct</span></div>
@@ -244,9 +275,9 @@
       • <b>🔥 Streaks</b> stack a bonus: get answers right in a row to earn like an alliance on a winning run.<br><br>
       • <b>🎯 Secret Mission</b> questions pay <b>double</b>. <b>🗡️ Veto</b> questions are traps — read carefully.<br><br>
       • The last question is the <b>👑 Ace of the Week</b> — worth the most points of all.<br><br>
+      • <b>🎁 Daily Bonus</b>: one extra question every day (same for everyone), one shot — its points add to your weekly total.<br><br>
       • Everyone playing in the same week gets the <b>same questions</b>, so the leaderboard is a fair fight.
-        A <b>fresh quiz unlocks automatically every week</b>.<br><br>
-      • Miss too many and The System <b>eliminates</b> you. Bank enough and you become <b>Master of the System</b>.<br><br>
+        A <b>fresh quiz unlocks automatically every week</b>, and last week's #1 is crowned <b>Ace of the Week</b> on the home screen.<br><br>
       • Tap the green button at the end to <b>challenge your WhatsApp group</b> to beat your score.
     </p>
     <button class="btn" id="howBack">← Back</button>
@@ -264,11 +295,15 @@
 <script>
 /* ============================================================
    OPTIONAL SHARED LEADERBOARD
-   Leave "" for a per-device leaderboard (works offline, no setup).
-   Paste a Google Apps Script Web App URL here to sync scores across
-   everyone's phones. Deploy steps are in scoreboard.gs / README.
+   You can turn this on with NO code editing:
+     • Tap "Group leaderboard" on the home screen and paste your
+       Google Apps Script Web app URL (setup in scoreboard.gs), OR
+     • Open the game with ?board=<your-url> once (it's remembered).
+   Sharing the ?board= link with the group puts everyone on one board.
+   To hardcode it instead, put the URL in HARDCODED_ENDPOINT below.
    ============================================================ */
-const SHARED_ENDPOINT = "";   // e.g. "https://script.google.com/macros/s/AKfy.../exec"
+const HARDCODED_ENDPOINT = "";
+let SHARED_ENDPOINT = HARDCODED_ENDPOINT;
 
 /* ============================================================
    QUESTION BANK  —  edit freely.
@@ -277,7 +312,6 @@ const SHARED_ENDPOINT = "";   // e.g. "https://script.google.com/macros/s/AKfy..
    a: index of the correct option in opts[]
    ============================================================ */
 const BANK = [
-  // ---------- Basics (casual) ----------
   {q:"Who hosts Alliance on Prime Video?", opts:["Kunal Kemmu","Ranvijay Singha","Karan Johar","Maniesh Paul"], a:0, tier:"casual",
    ex:"<b>Kunal Kemmu</b> hosts Alliance — his debut as a reality-show host."},
   {q:"On which platform does Alliance stream?", opts:["Netflix","Prime Video","JioHotstar","Sony LIV"], a:1, tier:"casual",
@@ -299,7 +333,6 @@ const BANK = [
   {q:"What time do new episodes release each day?", opts:["9 AM","12 noon","6 PM","Midnight"], a:1, tier:"casual",
    ex:"New episodes drop daily at <b>12 noon</b>."},
 
-  // ---------- Format / world ----------
   {q:"The authority that makes and breaks the rules in HQ is called…", opts:["The Director","The System","The Council","Big Brother"], a:1, tier:"casual", type:"veto",
    ex:"<b>The System</b> resets teams, tasks and alliances whenever it likes."},
   {q:"After their duos, players group into larger alliances of…", opts:["3 members","4 members","5 members","6 members"], a:1, tier:"superfan",
@@ -325,7 +358,6 @@ const BANK = [
   {q:"On which date did Alliance premiere?", opts:["26 June 2026","1 January 2026","15 August 2026","10 October 2026"], a:0, tier:"superfan",
    ex:"Alliance premiered on <b>26 June 2026</b>."},
 
-  // ---------- Cast & the 8 duos (superfan) ----------
   {q:"Veteran Ravi Kishan entered the game paired with…", opts:["His wife","His daughter Riva Kishan","His brother","His manager"], a:1, tier:"superfan",
    ex:"Bollywood & Bhojpuri star <b>Ravi Kishan</b> plays alongside his daughter <b>Riva Kishan</b>."},
   {q:"Kushal Tandon's duo partner in Alliance is…", opts:["Zaid Darbar","Arslan Goni","Sabby Suri","Armaan Khera"], a:1, tier:"superfan",
@@ -349,7 +381,6 @@ const BANK = [
   {q:"Zaid Darbar is best known as a…", opts:["Cricketer","Dancer / content creator","News anchor","Chef"], a:1, tier:"superfan",
    ex:"<b>Zaid Darbar</b> is a popular dancer and content creator."},
 
-  // ---------- Secret Missions (double points) ----------
   {q:"SECRET MISSION: How many players make up each larger alliance once duos merge?", opts:["Four","Three","Five","Eight"], a:0, tier:"casual", type:"mission",
    ex:"Alliances of <b>four</b> — two duos joining forces."},
   {q:"SECRET MISSION: Which of these is NOT one of the show's duos?", opts:["Kushal Tandon & Arslan Goni","Ravi Kishan & Riva Kishan","Niti Taylor & Daisy Shah","Payal Dhare & Sabby Suri"], a:2, tier:"superfan", type:"mission",
@@ -359,13 +390,11 @@ const BANK = [
   {q:"SECRET MISSION: Points inside HQ are best described as…", opts:["The game's only currency","Just for fun","A tiebreaker only","Worth nothing"], a:0, tier:"casual", type:"mission",
    ex:"Points are literally <b>the only currency</b> inside the bunker."},
 
-  // ---------- Veto / betrayal traps ----------
   {q:"VETO TRAP — read carefully: Which statement is FALSE about Alliance?", opts:["It streams daily on Prime Video","It is hosted by Kunal Kemmu","Contestants can never change alliances","It has 42 episodes"], a:2, tier:"casual", type:"veto",
    ex:"Alliances <b>constantly shift</b> — that's the whole point of the game."},
   {q:"VETO TRAP: Which of these is TRUE about the game?", opts:["No alliance is permanent","Everyone wins ₹50 lakh","There are 30 contestants","It airs only on weekends"], a:0, tier:"casual", type:"veto",
    ex:"<b>No alliance is permanent</b> — trust can turn to betrayal any moment."},
 
-  // ---------- Ace of the Week finale ----------
   {q:"ACE OF THE WEEK: Alliance holds a first for Prime Video worldwide. What is it?", opts:["First scripted daily drama","First-ever original global DAILY reality series","First AI-hosted show","First fully live show"], a:1, tier:"casual", type:"ace",
    ex:"Alliance is Prime Video's <b>first-ever original global daily reality series</b> — a new episode every single day."},
   {q:"ACE OF THE WEEK: What best sums up how to WIN Alliance?", opts:["Balance trust, strategy and deception the longest","Be the fastest runner","Get the most votes on day one","Never talk to anyone"], a:0, tier:"superfan", type:"ace",
@@ -375,9 +404,11 @@ const BANK = [
 ];
 
 /* ============================================================
-   WEEKLY SEED + DETERMINISTIC RNG
-   Everyone in the same ISO week (and difficulty) gets the same set.
+   TIME / DATE / WEEK SEED
    ============================================================ */
+const TIME=15, BASE=100, N_QUESTIONS=10, BONUS_BASE=150;
+const NOW = new Date();
+
 function isoWeek(d){
   const dt=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
   const day=(dt.getUTCDay()+6)%7; dt.setUTCDate(dt.getUTCDate()-day+3);
@@ -385,64 +416,105 @@ function isoWeek(d){
   const week=1+Math.round(((dt-firstThu)/86400000-3+((firstThu.getUTCDay()+6)%7))/7);
   return {year:dt.getUTCFullYear(), week};
 }
-function weekMonday(d){
-  const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x;
-}
-const NOW = new Date();
-const WK = isoWeek(NOW);
-const WEEK_ID = `${WK.year}-W${String(WK.week).padStart(2,"0")}`;
-const WEEK_LABEL = "Week of " + weekMonday(NOW).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+function weekMonday(d){ const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x; }
+function weekIdOf(d){ const w=isoWeek(d); return `${w.year}-W${String(w.week).padStart(2,"0")}`; }
+function weekLabelOf(d){ return "Week of "+weekMonday(d).toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
 
+const WEEK_ID=weekIdOf(NOW), WEEK_LABEL=weekLabelOf(NOW);
+const LAST=new Date(NOW); LAST.setDate(LAST.getDate()-7);
+const LAST_WEEK_ID=weekIdOf(LAST), LAST_WEEK_LABEL=weekLabelOf(LAST);
+const DATE_ID=`${NOW.getFullYear()}-${String(NOW.getMonth()+1).padStart(2,"0")}-${String(NOW.getDate()).padStart(2,"0")}`;
+
+/* seeded RNG */
 function xmur3(str){ let h=1779033703^str.length;
   for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=(h<<13)|(h>>>19); }
-  return ()=>{ h=Math.imul(h^(h>>>16),2246822507); h=Math.imul(h^(h>>>13),3266489909); return (h^=h>>>16)>>>0; };
-}
+  return ()=>{ h=Math.imul(h^(h>>>16),2246822507); h=Math.imul(h^(h>>>13),3266489909); return (h^=h>>>16)>>>0; }; }
 function mulberry32(a){ return ()=>{ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a);
   t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
 function rngFor(seedStr){ return mulberry32(xmur3(seedStr)()); }
 function seededShuffle(arr, rng){ const a=arr.slice();
   for(let i=a.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-// plain shuffle for cosmetic option order (per play)
 const shuffle=a=>{ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
 
+/* endpoint resolution: ?board= param -> localStorage -> hardcoded */
+(function initEndpoint(){
+  try{
+    const u=new URL(location.href); const p=u.searchParams.get("board");
+    if(p){ localStorage.setItem("allianceHQ_endpoint", p); u.searchParams.delete("board"); history.replaceState(null,"",u.toString()); }
+    const saved=localStorage.getItem("allianceHQ_endpoint");
+    SHARED_ENDPOINT = saved || HARDCODED_ENDPOINT;
+  }catch(e){}
+})();
+
 /* ============================================================
-   BUILD THIS WEEK'S QUIZ (deterministic per week + difficulty)
+   THIS WEEK'S QUIZ (deterministic per week + difficulty)
    ============================================================ */
-const TIME=15, BASE=100, N_QUESTIONS=10;
-
 function weeklyQuiz(diff){
-  const rng = rngFor(WEEK_ID+"::"+diff);
-  const allow = q => diff==="superfan" ? true : q.tier==="casual";
-  const normals  = BANK.filter(x=>(x.type||"normal")==="normal" && allow(x));
-  const missions = BANK.filter(x=>x.type==="mission" && allow(x));
-  const vetos    = BANK.filter(x=>x.type==="veto" && allow(x));
-  const aces     = BANK.filter(x=>x.type==="ace" && allow(x));
-  const acesAll  = aces.length?aces:BANK.filter(x=>x.type==="ace");
-
-  let core = seededShuffle(normals, rng).slice(0,5);
-  let mis  = seededShuffle(missions, rng).slice(0,2);
-  let vet  = seededShuffle(vetos, rng).slice(0,2);
-  let ace  = seededShuffle(acesAll, rng)[0];
-
-  let mid = seededShuffle([...core, ...mis, ...vet], rng);
-  // top up if a tier is thin
-  if(mid.length < N_QUESTIONS-1){
-    const extra = seededShuffle(BANK.filter(x=>x.type!=="ace" && allow(x) && !mid.includes(x)), rng);
-    while(mid.length < N_QUESTIONS-1 && extra.length) mid.push(extra.pop());
-  }
-  mid = mid.slice(0, N_QUESTIONS-1);
+  const rng=rngFor(WEEK_ID+"::"+diff);
+  const allow=q=>diff==="superfan"?true:q.tier==="casual";
+  const normals=BANK.filter(x=>(x.type||"normal")==="normal"&&allow(x));
+  const missions=BANK.filter(x=>x.type==="mission"&&allow(x));
+  const vetos=BANK.filter(x=>x.type==="veto"&&allow(x));
+  const aces=BANK.filter(x=>x.type==="ace"&&allow(x));
+  const acesAll=aces.length?aces:BANK.filter(x=>x.type==="ace");
+  let core=seededShuffle(normals,rng).slice(0,5);
+  let mis=seededShuffle(missions,rng).slice(0,2);
+  let vet=seededShuffle(vetos,rng).slice(0,2);
+  let ace=seededShuffle(acesAll,rng)[0];
+  let mid=seededShuffle([...core,...mis,...vet],rng);
+  if(mid.length<N_QUESTIONS-1){ const extra=seededShuffle(BANK.filter(x=>x.type!=="ace"&&allow(x)&&!mid.includes(x)),rng);
+    while(mid.length<N_QUESTIONS-1&&extra.length) mid.push(extra.pop()); }
+  mid=mid.slice(0,N_QUESTIONS-1);
   return [...mid, ace];
+}
+function dailyQuestion(){ const rng=rngFor("BONUS::"+DATE_ID); const pool=BANK.filter(x=>x.type!=="ace"); return seededShuffle(pool,rng)[0]; }
+
+/* ============================================================
+   LEADERBOARD STORE (per week, combined quiz + bonus totals)
+   ============================================================ */
+function wkKey(id){ return "allianceHQ_wk::"+id; }
+function readWeek(id){ try{ return JSON.parse(localStorage.getItem(wkKey(id)))||{}; }catch(e){ return {}; } }
+function writeWeek(id,obj){ try{ localStorage.setItem(wkKey(id), JSON.stringify(obj)); }catch(e){} }
+function playerRec(store,name){ const k=name.toLowerCase();
+  if(!store[k]) store[k]={name, quizBest:0, bonus:0, bonusDays:{}, diff:"casual"}; else store[k].name=name; return store[k]; }
+function totalOf(p){ return (p.quizBest||0)+(p.bonus||0); }
+function boardArray(store){ return Object.values(store).map(p=>({name:p.name, score:totalOf(p), diff:p.diff||"casual"})).sort((a,b)=>b.score-a.score); }
+function localBoard(){ return boardArray(readWeek(WEEK_ID)); }
+
+function recordQuiz(name,score,diff){ const s=readWeek(WEEK_ID); const p=playerRec(s,name);
+  p.quizBest=Math.max(p.quizBest||0,score); p.diff=diff; writeWeek(WEEK_ID,s); return totalOf(p); }
+function recordBonus(name,gained){ const s=readWeek(WEEK_ID); const p=playerRec(s,name);
+  if(!p.bonusDays) p.bonusDays={};
+  if(!p.bonusDays[DATE_ID]){ p.bonusDays[DATE_ID]=gained; p.bonus=(p.bonus||0)+gained; }
+  writeWeek(WEEK_ID,s); return totalOf(p); }
+function bonusDoneToday(){ try{ return localStorage.getItem("allianceHQ_bonusDone::"+DATE_ID)==="1"; }catch(e){ return false; } }
+function markBonusDone(){ try{ localStorage.setItem("allianceHQ_bonusDone::"+DATE_ID,"1"); }catch(e){} }
+
+/* ---- cloud sync ---- */
+async function cloudPost(week,name,score,diff){ if(!SHARED_ENDPOINT) return;
+  try{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),8000);
+    await fetch(SHARED_ENDPOINT,{method:"POST",signal:c.signal,headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({week,name,score,diff})}); clearTimeout(t);
+  }catch(e){}
+}
+async function cloudGet(week){ if(!SHARED_ENDPOINT) return null;
+  try{ const c=new AbortController(); const t=setTimeout(()=>c.abort(),8000);
+    const r=await fetch(SHARED_ENDPOINT+"?week="+encodeURIComponent(week),{signal:c.signal}); clearTimeout(t);
+    const d=await r.json(); return Array.isArray(d)?d:(d.scores||[]);
+  }catch(e){ return null; }
 }
 
 /* ============================================================
    ENGINE
    ============================================================ */
 const el=id=>document.getElementById(id);
-function show(sec){ ["start","quiz","result","how"].forEach(id=>el(id).classList.add("hidden"));
+function show(sec){ ["start","quiz","bonus","result","how"].forEach(id=>el(id).classList.add("hidden"));
   el(sec).classList.remove("hidden"); el(sec).classList.add("fade");
   setTimeout(()=>el(sec).classList.remove("fade"),350); window.scrollTo(0,0); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+function getName(){ return (el("name").value||"").trim()||"Player"; }
 
-let difficulty="casual", state;
+let difficulty="casual", state, bonusState;
 document.querySelectorAll("#diff button").forEach(b=>{
   b.onclick=()=>{ document.querySelectorAll("#diff button").forEach(x=>x.classList.remove("on"));
     b.classList.add("on"); difficulty=b.dataset.d; };
@@ -451,22 +523,21 @@ el("weekChip").textContent = WEEK_LABEL + " • fresh set";
 el("go").onclick=start;
 el("howBtn").onclick=()=>show("how");
 el("howBack").onclick=()=>show("start");
-el("again").onclick=()=>show("start");
+el("again").onclick=()=>{ refreshHome(); show("start"); };
+el("bonusBtn").onclick=openBonus;
+el("bdone").onclick=()=>{ refreshHome(); show("start"); };
 el("year").textContent=NOW.getFullYear();
 el("name").addEventListener("keydown",e=>{ if(e.key==="Enter") start(); });
 
+/* ---- MAIN QUIZ ---- */
 function start(){
-  const name=(el("name").value||"").trim()||"Player";
-  try{ localStorage.setItem("allianceHQ_name", name); }catch(e){}
+  const name=getName(); try{ localStorage.setItem("allianceHQ_name", name); }catch(e){}
   state={ name, diff:difficulty, list:weeklyQuiz(difficulty), i:0, score:0, correct:0, streak:0, best:0, timer:null, answered:false, left:TIME };
   show("quiz"); render();
 }
-
 function render(){
-  clearInterval(state.timer);
-  state.answered=false; state.left=TIME;
+  clearInterval(state.timer); state.answered=false; state.left=TIME;
   const item=state.list[state.i]; const type=item.type||"normal";
-
   el("qcount").textContent=`Q ${state.i+1} / ${state.list.length}`;
   el("streakPill").textContent=`🔥 ${state.streak}`;
   el("score").textContent=`${state.score} pts`;
@@ -474,59 +545,40 @@ function render(){
   el("feed").textContent=""; el("feed").className="feed";
   el("expl").className="expl"; el("expl").innerHTML=item.ex||"";
   el("next").classList.add("hidden");
-
   const map={ normal:["normal","⚡ Challenge"], mission:["mission","🎯 Secret Mission · Double Points"],
     veto:["veto","🗡️ The Veto · Trap Question"], ace:["ace","👑 Ace of the Week · Final Power"] };
   el("rtag").className="rtag "+map[type][0]; el("rtag").textContent=map[type][1];
   el("question").textContent=item.q;
-
-  const idx=item.opts.map((_,k)=>k); shuffle(idx);
-  const correctPos=idx.indexOf(item.a);
+  const idx=item.opts.map((_,k)=>k); shuffle(idx); const correctPos=idx.indexOf(item.a);
   const box=el("options"); box.innerHTML="";
-  idx.forEach((origK,pos)=>{
-    const btn=document.createElement("button"); btn.className="opt";
+  idx.forEach((origK,pos)=>{ const btn=document.createElement("button"); btn.className="opt";
     btn.innerHTML=`<span class="k">${String.fromCharCode(65+pos)}</span>${item.opts[origK]}`;
-    btn.onclick=()=>answer(pos,correctPos,box,type); box.appendChild(btn);
-  });
-
-  el("tbar").style.transform="scaleX(1)";
-  const started=Date.now();
-  state.timer=setInterval(()=>{
-    const elapsed=(Date.now()-started)/1000; state.left=Math.max(0,TIME-elapsed);
+    btn.onclick=()=>answer(pos,correctPos,box,type); box.appendChild(btn); });
+  el("tbar").style.transform="scaleX(1)"; const started=Date.now();
+  state.timer=setInterval(()=>{ const elapsed=(Date.now()-started)/1000; state.left=Math.max(0,TIME-elapsed);
     el("tbar").style.transform=`scaleX(${state.left/TIME})`;
-    if(state.left<=0){ clearInterval(state.timer); if(!state.answered) answer(-1,correctPos,box,type); }
-  },100);
+    if(state.left<=0){ clearInterval(state.timer); if(!state.answered) answer(-1,correctPos,box,type); } },100);
 }
-
 function answer(pos, correctPos, box, type){
   if(state.answered) return; state.answered=true; clearInterval(state.timer);
-  const buttons=[...box.children];
-  buttons.forEach((b,k)=>{ b.disabled=true;
-    if(k===correctPos) b.classList.add("correct");
-    else if(k===pos) b.classList.add("wrong"); else b.classList.add("dim"); });
-
-  const ok=pos===correctPos;
-  const mult=type==="mission"?2:type==="ace"?3:type==="veto"?1.5:1;
-  if(ok){
-    const speed=Math.round((state.left/TIME)*80);
-    const streakBonus=state.streak*20;
+  [...box.children].forEach((b,k)=>{ b.disabled=true;
+    if(k===correctPos) b.classList.add("correct"); else if(k===pos) b.classList.add("wrong"); else b.classList.add("dim"); });
+  const ok=pos===correctPos; const mult=type==="mission"?2:type==="ace"?3:type==="veto"?1.5:1;
+  if(ok){ const speed=Math.round((state.left/TIME)*80); const streakBonus=state.streak*20;
     const gained=Math.round((BASE+speed+streakBonus)*mult);
     state.score+=gained; state.correct++; state.streak++; state.best=Math.max(state.best,state.streak);
     el("feed").className="feed good";
     el("feed").innerHTML=`✅ +${gained} pts`+(state.streak>1?` · <span class="streak">🔥 ${state.streak} streak</span>`:"")+(mult>1?` · ×${mult}`:"");
-  } else {
-    state.streak=0; el("feed").className="feed bad";
-    el("feed").textContent = pos===-1 ? "⏱️ Time up — The System takes the point." : "❌ Not this time.";
-  }
+  } else { state.streak=0; el("feed").className="feed bad";
+    el("feed").textContent=pos===-1?"⏱️ Time up — The System takes the point.":"❌ Not this time."; }
   el("score").textContent=`${state.score} pts`; el("streakPill").textContent=`🔥 ${state.streak}`;
   el("expl").classList.add("show");
-
   const last=state.i>=state.list.length-1; const nb=el("next");
   nb.textContent=last?"See The System's verdict →":"Next →"; nb.classList.remove("hidden");
   nb.onclick=()=>{ if(last) finish(); else { state.i++; render(); } };
 }
 
-/* ---- ranks ---- */
+/* ---- ranks + result ---- */
 const RANKS=[
   {min:0.00, icon:"💀", name:"Eliminated", note:"The System sent you home early. Rewatch a few episodes and run it back!"},
   {min:0.35, icon:"🧩", name:"Rookie Ally", note:"You know the basics — but the superfans are still ahead of you."},
@@ -537,10 +589,8 @@ const RANKS=[
 function rankFor(f){ let r=RANKS[0]; for(const x of RANKS) if(f>=x.min) r=x; return r; }
 
 function finish(){
-  const maxApprox=state.list.reduce((s,q)=>{ const m=q.type==="mission"?2:q.type==="ace"?3:q.type==="veto"?1.5:1;
-    return s+(BASE+80)*m; },0);
+  const maxApprox=state.list.reduce((s,q)=>{ const m=q.type==="mission"?2:q.type==="ace"?3:q.type==="veto"?1.5:1; return s+(BASE+80)*m; },0);
   const frac=Math.min(1,state.score/maxApprox); const rank=rankFor(frac);
-
   el("rankIcon").textContent=rank.icon; el("rankName").textContent=rank.name;
   el("finalPts").textContent=state.score.toLocaleString();
   el("stCorrect").textContent=`${state.correct}/${state.list.length}`;
@@ -549,29 +599,84 @@ function finish(){
   el("verdict").innerHTML=`<b style="color:var(--ink)">${escapeHtml(state.name)}</b>, ${rank.note}`;
   el("lbWeek").textContent=WEEK_LABEL;
 
-  saveScore(state.name, state.score, state.diff);
-  renderLB(state.name, state.score);
-  syncAndRenderLB(state.name, state.score, state.diff);
-  show("result");
-  if(frac>=0.72) burst();
+  const total=recordQuiz(state.name,state.score,state.diff);
+  renderLB(localBoard(), state.name);
+  el("lbSub").textContent = SHARED_ENDPOINT ? "Top players this week — synced across the group" : "Top players this week (this device)";
+  el("syncNote").textContent = SHARED_ENDPOINT ? "Syncing with the group…" : "Saved on this device. Tap “Group leaderboard” on the home screen to sync everyone.";
+  if(SHARED_ENDPOINT){ (async()=>{ await cloudPost(WEEK_ID,state.name,total,state.diff);
+      const cloud=await cloudGet(WEEK_ID);
+      if(cloud&&cloud.length){ renderLB(cloud, state.name); el("syncNote").textContent="✅ Live group leaderboard • "+WEEK_LABEL; }
+      else el("syncNote").textContent="⚠️ Couldn't reach the group board — showing this device's scores."; })(); }
 
+  show("result"); if(frac>=0.72) burst();
   const text=shareText(rank);
   el("share").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
   el("copy").onclick=async()=>{ try{ await navigator.clipboard.writeText(text);
     el("copy").textContent="Copied ✓"; setTimeout(()=>el("copy").textContent="Copy result text",1600);}catch(e){ alert(text);} };
 }
-
 function shareText(rank){
   return `🕹️ ALLIANCE HQ — ${WEEK_LABEL}\n`+
-    `${rank.icon} I ranked "${rank.name}" with ${state.score.toLocaleString()} points `+
-    `(${state.correct}/${state.list.length} correct)!\n\n`+
+    `${rank.icon} I ranked "${rank.name}" with ${state.score.toLocaleString()} points (${state.correct}/${state.list.length} correct)!\n\n`+
     `Same questions for everyone this week — think you follow Alliance more closely than me? Beat my score 👇\n`+
-    `${location.href.split("#")[0]}`;
+    `${groupLink()}`;
+}
+
+/* ---- DAILY BONUS ---- */
+function openBonus(){
+  const name=getName(); try{ localStorage.setItem("allianceHQ_name", name); }catch(e){}
+  const locked=bonusDoneToday();
+  bonusState={ name, item:dailyQuestion(), answered:false, left:TIME, timer:null, locked };
+  el("bonusDate").textContent=NOW.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+  el("bonusPts").textContent="+0";
+  renderBonus();
+  show("bonus");
+}
+function renderBonus(){
+  const item=bonusState.item; el("bq").textContent=item.q;
+  el("bfeed").textContent=""; el("bfeed").className="feed";
+  el("bexpl").className="expl"; el("bexpl").innerHTML=item.ex||"";
+  const box=el("bopts"); box.innerHTML="";
+  const idx=item.opts.map((_,k)=>k); shuffle(idx); const correctPos=idx.indexOf(item.a);
+  idx.forEach((origK,pos)=>{ const btn=document.createElement("button"); btn.className="opt";
+    btn.innerHTML=`<span class="k">${String.fromCharCode(65+pos)}</span>${item.opts[origK]}`;
+    btn.onclick=()=>bonusAnswer(pos,correctPos,box); box.appendChild(btn); });
+  if(bonusState.locked){
+    // already claimed today: reveal answer, no points, no timer
+    bonusState.answered=true;
+    [...box.children].forEach((b,k)=>{ b.disabled=true; if(k===correctPos) b.classList.add("correct"); else b.classList.add("dim"); });
+    el("bexpl").classList.add("show");
+    el("bfeed").className="feed"; el("bfeed").innerHTML="✅ You've already claimed today's bonus — come back tomorrow!";
+    el("btbar").style.transform="scaleX(0)";
+    return;
+  }
+  el("btbar").style.transform="scaleX(1)"; const started=Date.now();
+  bonusState.timer=setInterval(()=>{ const elapsed=(Date.now()-started)/1000; bonusState.left=Math.max(0,TIME-elapsed);
+    el("btbar").style.transform=`scaleX(${bonusState.left/TIME})`;
+    if(bonusState.left<=0){ clearInterval(bonusState.timer); if(!bonusState.answered) bonusAnswer(-1,correctPos,box); } },100);
+}
+function bonusAnswer(pos, correctPos, box){
+  if(bonusState.answered) return; bonusState.answered=true; clearInterval(bonusState.timer);
+  [...box.children].forEach((b,k)=>{ b.disabled=true;
+    if(k===correctPos) b.classList.add("correct"); else if(k===pos) b.classList.add("wrong"); else b.classList.add("dim"); });
+  el("bexpl").classList.add("show");
+  const ok=pos===correctPos;
+  markBonusDone();
+  if(ok){
+    const gained=Math.round(BONUS_BASE + (bonusState.left/TIME)*80);
+    el("bonusPts").textContent="+"+gained;
+    el("bfeed").className="feed good"; el("bfeed").innerHTML=`🎁 +${gained} bonus points added to your weekly total!`;
+    const total=recordBonus(bonusState.name, gained);
+    if(SHARED_ENDPOINT) cloudPost(WEEK_ID, bonusState.name, total, "bonus");
+    burst();
+  } else {
+    el("bfeed").className="feed bad";
+    el("bfeed").textContent = pos===-1 ? "⏱️ Time up — no bonus today. Try again tomorrow!" : "❌ Not quite — no bonus today. Come back tomorrow!";
+  }
+  el("bdone").textContent="← Back to HQ";
 }
 
 /* ---- confetti ---- */
-function burst(){
-  const c=el("confetti"); c.innerHTML="";
+function burst(){ const c=el("confetti"); c.innerHTML="";
   const cols=["#25e0d4","#7b6bff","#ffcb45","#39d98a","#ff5c6c"];
   for(let i=0;i<90;i++){ const s=document.createElement("i");
     s.style.left=Math.random()*100+"vw"; s.style.background=cols[(Math.random()*cols.length)|0];
@@ -580,69 +685,64 @@ function burst(){
   setTimeout(()=>c.innerHTML="",6000);
 }
 
-/* ============================================================
-   LEADERBOARD  (per-week, persistent, best-score-per-player)
-   Local first; optionally synced via SHARED_ENDPOINT.
-   ============================================================ */
-const LB_KEY="allianceHQ_lb_v2::"+WEEK_ID;
-function readLocal(){ try{ return JSON.parse(localStorage.getItem(LB_KEY))||[]; }catch(e){ return []; } }
-function writeLocal(a){ try{ localStorage.setItem(LB_KEY, JSON.stringify(a)); }catch(e){} }
-
-function mergeScores(list){
-  // keep best score per (name) — case-insensitive
-  const best={};
-  for(const r of list){
-    if(!r||typeof r.score!=="number") continue;
-    const key=(r.name||"Player").toLowerCase();
-    if(!best[key] || r.score>best[key].score) best[key]={name:r.name||"Player", score:r.score, diff:r.diff||"casual"};
-  }
-  return Object.values(best).sort((a,b)=>b.score-a.score).slice(0,20);
-}
-function saveScore(name, score, diff){
-  const merged=mergeScores([...readLocal(), {name, score, diff}]);
-  writeLocal(merged);
-}
-function renderLB(meName, meScore, cloud){
-  const lb=cloud||readLocal(); const list=el("lbList"); list.innerHTML="";
-  if(!lb.length){ list.innerHTML='<div style="color:var(--muted);font-size:13px">No scores yet — you\'re the first to play this week!</div>'; return; }
+/* ---- leaderboard render ---- */
+function renderLB(list, meName){
+  const box=el("lbList"); box.innerHTML="";
+  if(!list||!list.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">No scores yet — you\'re the first to play this week!</div>'; return; }
   const medals=["🥇","🥈","🥉"]; let marked=false;
-  lb.slice(0,10).forEach((r,i)=>{
-    const isMe=!marked && r.name.toLowerCase()===String(meName).toLowerCase() && r.score===meScore; if(isMe) marked=true;
+  list.slice(0,10).forEach((r,i)=>{
+    const isMe=!marked && String(r.name).toLowerCase()===String(meName).toLowerCase(); if(isMe) marked=true;
     const row=document.createElement("div"); row.className="lbrow"+(isMe?" me":"");
     row.innerHTML=`<span class="rk">${i<3?`<span class="medal">${medals[i]}</span>`:i+1}</span>`+
       `<span class="nm">${escapeHtml(r.name)}${isMe?" (you)":""}</span>`+
-      `<span class="sc">${r.score.toLocaleString()}</span>`;
-    list.appendChild(row);
+      `<span class="sc">${Number(r.score).toLocaleString()}</span>`;
+    box.appendChild(row);
   });
 }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 
-/* ---- optional cloud sync (Google Apps Script Web App) ---- */
-async function syncAndRenderLB(name, score, diff){
-  const note=el("syncNote");
-  if(!SHARED_ENDPOINT){ note.textContent="Scores are saved on this device. Turn on the shared board to sync across the group (see README)."; return; }
-  el("lbSub").textContent="Top players this week — synced across the group";
-  note.textContent="Syncing with the group…";
-  try{
-    const controller=new AbortController(); const t=setTimeout(()=>controller.abort(),8000);
-    await fetch(SHARED_ENDPOINT,{ method:"POST", signal:controller.signal,
-      headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({week:WEEK_ID, name, score, diff}) });
-    const res=await fetch(SHARED_ENDPOINT+"?week="+encodeURIComponent(WEEK_ID),{signal:controller.signal});
-    clearTimeout(t);
-    const data=await res.json();
-    const cloud=mergeScores(Array.isArray(data)?data:(data.scores||[]));
-    // merge cloud into local so the device board stays warm too
-    writeLocal(mergeScores([...readLocal(), ...cloud]));
-    renderLB(name, score, cloud);
-    note.textContent="✅ Live group leaderboard • "+WEEK_LABEL;
-  }catch(e){
-    note.textContent="⚠️ Couldn't reach the group board — showing this device's scores.";
-  }
+/* ---- home screen: winner banner + bonus dot + group board ---- */
+function groupLink(){
+  const base=location.href.split("#")[0].split("?")[0];
+  return SHARED_ENDPOINT ? base+"?board="+encodeURIComponent(SHARED_ENDPOINT) : base;
 }
+function paintWinner(arr){
+  if(!arr||!arr.length) return;
+  const w=arr[0];
+  el("winnerBanner").innerHTML=`<span class="crown">👑</span>Last week's <b>Ace of the Week</b><br><b>${escapeHtml(w.name)}</b> — ${Number(w.score).toLocaleString()} pts <span style="color:var(--muted)">(${LAST_WEEK_LABEL})</span>`;
+  el("winnerBanner").classList.remove("hidden");
+}
+function refreshHome(){
+  // last week winner (local first, then cloud if available)
+  paintWinner(boardArray(readWeek(LAST_WEEK_ID)));
+  if(SHARED_ENDPOINT){ cloudGet(LAST_WEEK_ID).then(a=>{ if(a&&a.length) paintWinner(a); }); }
+  // daily bonus availability
+  el("bonusDot").classList.toggle("hidden", bonusDoneToday());
+  el("bonusBtn").firstChild.textContent = bonusDoneToday() ? "🎁 Daily Bonus (done today)" : "🎁 Daily Bonus";
+  // group board button
+  el("boardBtn").textContent = SHARED_ENDPOINT ? "🌐 Group leaderboard: On — tap to change" : "🌐 Group leaderboard: Off — tap to set up";
+}
+el("boardBtn").onclick=()=>{
+  const v=prompt(
+    "GROUP LEADERBOARD\n\nPaste your Google Apps Script Web app URL to sync scores across everyone's phones. "+
+    "Setup steps are in the scoreboard.gs file / README.\n\n(Leave blank and press OK to turn it off.)",
+    SHARED_ENDPOINT||"");
+  if(v===null) return;
+  const val=v.trim();
+  try{ if(val) localStorage.setItem("allianceHQ_endpoint",val); else localStorage.removeItem("allianceHQ_endpoint"); }catch(e){}
+  SHARED_ENDPOINT = val || HARDCODED_ENDPOINT;
+  refreshHome();
+  if(val){
+    const link=groupLink();
+    if(navigator.clipboard) navigator.clipboard.writeText(link).catch(()=>{});
+    alert("✅ Group leaderboard ON.\n\nAn invite link was copied to your clipboard — share THAT link in your WhatsApp group so everyone joins the same board:\n\n"+link);
+  } else {
+    alert("Group leaderboard turned off. Scores now stay on this device.");
+  }
+};
 
-// prefill last used name
+/* init */
 try{ const n=localStorage.getItem("allianceHQ_name"); if(n) el("name").value=n; }catch(e){}
+refreshHome();
 </script>
 </body>
 </html>

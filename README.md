@@ -18,6 +18,8 @@ Built to be dropped into a **WhatsApp group** — one link, play on any phone, c
 - **🔥 Streak bonus** for consecutive correct answers.
 - **Two difficulties** — _Casual Fan_ and _Superfan_ (cast, duos, format deep-cuts).
 - **📅 New quiz every week** — a fresh, randomized set unlocks automatically. Everyone playing the same week gets the **same questions**, so the leaderboard is a fair competition.
+- **🎁 Daily Bonus** — one extra question every day (same for everyone, one shot). Its points add to your weekly total, so there's a reason to come back each day.
+- **👑 Ace of the Week** — last week's #1 is crowned on the home screen automatically.
 - **🏆 Persistent leaderboard** — every player's best score is saved and ranked. Works per-device out of the box, or **synced across the whole group** (optional, see below).
 - **📲 One-tap WhatsApp share** — brag about your rank and challenge the group to beat your score.
 
@@ -40,15 +42,26 @@ _No GitHub Pages? You can also just open `index.html` on any phone, or host it o
 
 ## 🌐 Optional: one shared leaderboard across everyone's phones
 
-By default each phone keeps its own leaderboard (simple, works offline). To make **one live leaderboard for the whole group**, add a tiny free Google Apps Script backend:
+By default each phone keeps its own leaderboard (simple, works offline). To make **one live leaderboard for the whole group**:
 
-1. Open **`scoreboard.gs`** and follow the step-by-step setup at the top (about 5 minutes).
-2. It gives you a **Web app URL**.
-3. In `index.html`, set:
-   ```js
-   const SHARED_ENDPOINT = "https://script.google.com/macros/s/XXXX/exec";
-   ```
-4. Re-publish. Now every player shows up on one leaderboard, reset automatically each week.
+1. Open **`scoreboard.gs`** and follow the step-by-step setup at the top (about 5 minutes). It gives you a **Web app URL**.
+2. **No code editing needed** — open the game, tap **“🌐 Group leaderboard”** on the home screen, and paste the URL. The game copies a special invite link (`…/?board=…`).
+3. **Share that invite link in WhatsApp.** Anyone who taps it automatically joins the same live leaderboard, reset automatically each week.
+
+_(Prefer hardcoding? You can instead set `const HARDCODED_ENDPOINT = "…"` near the top of `index.html`.)_
+
+---
+
+## 💬 Invite message for the family / WhatsApp group
+
+Copy-paste this with your link:
+
+> 🕹️ *Alliance HQ — Trivia Challenge!*
+> Think you're the biggest *Alliance* fan in this group? 😏
+> Enter HQ, beat the clock, and see if The System crowns you 👑 *Ace of the Week*.
+> 🎁 New quiz every week + a daily bonus question.
+> Play here 👉 `<your-link>`
+> Post your rank & score — let's see who gets eliminated first 💀🔥
 
 ---
 
