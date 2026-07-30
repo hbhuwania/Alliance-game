@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#0a0e1a" />
+<title>Alliance HQ — Trivia Challenge</title>
+<meta name="description" content="A fan trivia game for Prime Video's reality show Alliance. Enter HQ, earn points, and see if you can become Ace of the Week. New challenge every week." />
+<meta property="og:title" content="Alliance HQ — Weekly Trivia Challenge" />
+<meta property="og:description" content="Think you follow Alliance closely? Enter HQ, beat the clock, and climb from Eliminated to Master of the System. New quiz every week." />
+<meta property="og:type" content="website" />
+<style>
+  :root{
+    --bg:#070a14; --bg2:#0d1220; --panel:#121a2e; --panel2:#0f1626;
+    --line:#233152; --ink:#eaf0ff; --muted:#93a2c4;
+    --cyan:#25e0d4; --violet:#7b6bff; --amber:#ffcb45; --red:#ff5c6c; --green:#39d98a;
+    --glow:0 0 24px rgba(37,224,212,.35);
+    --shadow:0 20px 50px rgba(0,0,0,.55);
+    --r:18px; font-synthesis:none;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1000px 700px at 80% -10%, rgba(123,107,255,.20), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, rgba(37,224,212,.16), transparent 55%),
+      linear-gradient(180deg,var(--bg),var(--bg2));
+    min-height:100dvh; overflow-x:hidden;
+  }
+  .grid-lines{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.35;
+    background-image:linear-gradient(rgba(37,224,212,.06) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(37,224,212,.06) 1px,transparent 1px);
+    background-size:44px 44px;mask-image:radial-gradient(circle at 50% 30%,#000,transparent 85%)}
+  .wrap{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:20px 16px 40px;
+    min-height:100dvh;display:flex;flex-direction:column}
+  .brand{display:flex;align-items:center;gap:10px;justify-content:center;margin:6px 0 2px}
+  .logo{width:34px;height:34px;border-radius:9px;position:relative;flex:none;
+    background:conic-gradient(from 210deg,var(--cyan),var(--violet),var(--amber),var(--cyan));
+    box-shadow:var(--glow)}
+  .logo::after{content:"A";position:absolute;inset:0;display:grid;place-items:center;
+    font-weight:900;color:#06121f;font-size:19px}
+  .brand h1{font-size:15px;letter-spacing:.32em;margin:0;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));
+    border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+    padding:22px;margin-top:16px}
+  .center{text-align:center}
+  h2{margin:.2em 0 .3em;font-size:26px;line-height:1.15;letter-spacing:-.01em}
+  .sys{display:inline-flex;gap:7px;align-items:center;font-size:11px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--cyan);border:1px solid rgba(37,224,212,.35);
+    background:rgba(37,224,212,.07);padding:5px 11px;border-radius:999px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:var(--glow);
+    animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .weekchip{display:inline-block;margin-top:12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--amber);border:1px solid rgba(255,203,69,.4);background:rgba(255,203,69,.08);
+    padding:6px 12px;border-radius:999px;font-weight:700}
+  p.lead{color:var(--muted);line-height:1.55;font-size:15px;margin:12px 0 4px}
+  .rounds{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 6px;text-align:left}
+  .rnd{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:rgba(255,255,255,.02)}
+  .rnd b{display:block;font-size:13px}
+  .rnd span{font-size:11.5px;color:var(--muted)}
+  label.fld{display:block;text-align:left;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--muted);margin:18px 0 7px}
+  input[type=text]{width:100%;padding:14px 15px;border-radius:12px;border:1px solid var(--line);
+    background:#0a1120;color:var(--ink);font-size:16px;outline:none}
+  input[type=text]:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(37,224,212,.15)}
+  .seg{display:flex;gap:8px;margin-top:9px}
+  .seg button{flex:1;padding:11px 8px;border-radius:11px;border:1px solid var(--line);
+    background:#0a1120;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer}
+  .seg button.on{color:#06121f;border-color:transparent;
+    background:linear-gradient(180deg,var(--cyan),#12b6ab);box-shadow:var(--glow)}
+  .btn{display:block;width:100%;margin-top:16px;padding:16px;border:none;border-radius:13px;
+    font-size:16px;font-weight:800;letter-spacing:.02em;cursor:pointer;color:#06121f;
+    background:linear-gradient(120deg,var(--cyan),var(--violet));box-shadow:var(--shadow);
+    transition:transform .06s ease,filter .2s}
+  .btn:active{transform:translateY(1px) scale(.995)}
+  .btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+  .btn.wa{background:linear-gradient(120deg,#25D366,#128C7E);color:#06210f}
+  .foot{margin-top:auto;padding-top:22px;text-align:center;color:#5f6f92;font-size:11.5px;line-height:1.5}
+  .foot a{color:#7f8fb8}
+
+  .hud{display:flex;align-items:center;gap:10px;margin-top:6px}
+  .hud .pill{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;
+    padding:6px 11px;background:rgba(255,255,255,.02);white-space:nowrap}
+  .hud .pts{margin-left:auto;font-weight:900;font-size:18px;color:var(--amber);
+    text-shadow:0 0 16px rgba(255,203,69,.4)}
+  .bar{height:7px;border-radius:99px;background:#0a1120;border:1px solid var(--line);overflow:hidden;margin-top:12px}
+  .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--violet));transition:width .3s}
+  .timer{height:5px;border-radius:99px;background:#0a1120;overflow:hidden;margin-top:10px}
+  .timer>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--green),var(--amber),var(--red));
+    transform-origin:left;transition:transform .1s linear}
+
+  .rtag{display:inline-flex;gap:7px;align-items:center;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    padding:5px 10px;border-radius:999px;margin-top:16px;font-weight:700}
+  .rtag.mission{color:var(--amber);background:rgba(255,203,69,.10);border:1px solid rgba(255,203,69,.4)}
+  .rtag.veto{color:var(--red);background:rgba(255,92,108,.10);border:1px solid rgba(255,92,108,.4)}
+  .rtag.ace{color:var(--violet);background:rgba(123,107,255,.12);border:1px solid rgba(123,107,255,.45)}
+  .rtag.normal{color:var(--cyan);background:rgba(37,224,212,.08);border:1px solid rgba(37,224,212,.35)}
+
+  .q{font-size:20px;line-height:1.35;margin:14px 0 4px;font-weight:700}
+  .opts{display:grid;gap:10px;margin-top:14px}
+  .opt{width:100%;text-align:left;padding:15px 16px;border-radius:13px;border:1px solid var(--line);
+    background:#0a1120;color:var(--ink);font-size:15.5px;cursor:pointer;position:relative;
+    transition:border-color .15s,background .15s,transform .06s}
+  .opt:active{transform:scale(.995)}
+  .opt .k{display:inline-flex;width:24px;height:24px;border-radius:7px;margin-right:11px;
+    align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--muted);
+    background:#111c33;border:1px solid var(--line);vertical-align:middle}
+  .opt.correct{border-color:var(--green);background:rgba(57,217,138,.12)}
+  .opt.correct .k{background:var(--green);color:#062315}
+  .opt.wrong{border-color:var(--red);background:rgba(255,92,108,.12)}
+  .opt.wrong .k{background:var(--red);color:#2a060a}
+  .opt.dim{opacity:.5}
+  .opt:disabled{cursor:default}
+  .expl{margin-top:14px;padding:13px 14px;border-radius:12px;font-size:14px;line-height:1.5;
+    border:1px solid var(--line);background:rgba(255,255,255,.02);color:var(--muted);display:none}
+  .expl.show{display:block}
+  .expl b{color:var(--ink)}
+  .feed{font-weight:800;font-size:14px;margin-top:12px;min-height:18px}
+  .feed.good{color:var(--green)} .feed.bad{color:var(--red)}
+  .streak{color:var(--amber);font-weight:800}
+
+  .rankbadge{width:120px;height:120px;border-radius:26px;margin:6px auto 4px;display:grid;place-items:center;
+    font-size:56px;background:conic-gradient(from 140deg,rgba(123,107,255,.3),rgba(37,224,212,.3),rgba(255,203,69,.3),rgba(123,107,255,.3));
+    border:1px solid var(--line);box-shadow:var(--shadow)}
+  .rankname{font-size:24px;font-weight:900;letter-spacing:.01em;margin:6px 0 2px}
+  .bigpts{font-size:52px;font-weight:900;color:var(--amber);text-shadow:0 0 26px rgba(255,203,69,.35);line-height:1}
+  .statrow{display:flex;gap:10px;margin:16px 0 4px}
+  .stat{flex:1;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;background:rgba(255,255,255,.02)}
+  .stat b{display:block;font-size:20px} .stat span{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+  .lb{margin-top:18px;text-align:left}
+  .lb h3{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 4px;
+    display:flex;justify-content:space-between;align-items:center}
+  .lb .sub{font-size:11px;color:#5f6f92;letter-spacing:.04em;text-transform:none;margin:0 0 10px}
+  .lbrow{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:11px;
+    margin-bottom:7px;background:rgba(255,255,255,.02);font-size:14px}
+  .lbrow .rk{width:22px;color:var(--muted);font-weight:800;text-align:center}
+  .lbrow .nm{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lbrow .sc{font-weight:800;color:var(--amber)}
+  .lbrow.me{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(37,224,212,.12)}
+  .lbrow .medal{font-size:15px}
+  .syncnote{font-size:11px;color:#5f6f92;margin-top:6px;text-align:center}
+
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
+  .confetti i{position:absolute;top:-12px;width:9px;height:14px;opacity:.95;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+  .hidden{display:none!important}
+  .fade{animation:fade .32s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @media (max-width:360px){ h2{font-size:22px} .q{font-size:18px} }
+</style>
+</head>
+<body>
+<div class="grid-lines"></div>
+<div class="wrap">
+
+  <div class="brand"><span class="logo"></span><h1>Alliance&nbsp;HQ</h1></div>
+
+  <!-- ===================== START ===================== -->
+  <section id="start" class="card center fade">
+    <span class="sys"><span class="dot"></span> The System is online</span>
+    <h2>Weekly Trivia Challenge</h2>
+    <div class="weekchip" id="weekChip">This Week's Challenge</div>
+    <p class="lead">Sixteen players. Eight duos. One HQ run by <b style="color:var(--ink)">The System</b>.
+      Answer fast to bank <b style="color:var(--amber)">points</b> — the only currency in the bunker.
+      Everyone gets the <b style="color:var(--ink)">same set this week</b>, so it's a fair fight —
+      and a <b style="color:var(--ink)">brand-new quiz drops every week</b>.</p>
+
+    <div class="rounds">
+      <div class="rnd"><b>⚡ Rapid Challenges</b><span>Beat the clock for more points</span></div>
+      <div class="rnd"><b>🎯 Secret Mission</b><span>Bonus round — double points</span></div>
+      <div class="rnd"><b>🗡️ The Veto</b><span>Betrayal twist — don't get fooled</span></div>
+      <div class="rnd"><b>👑 Ace of the Week</b><span>The final power question</span></div>
+    </div>
+
+    <label class="fld" for="name">Enter your player name</label>
+    <input id="name" type="text" maxlength="18" placeholder="e.g. Bhaiya, Bhabhi, Kushal…" autocomplete="off" />
+
+    <label class="fld">Choose your difficulty</label>
+    <div class="seg" id="diff">
+      <button data-d="casual" class="on">Casual Fan</button>
+      <button data-d="superfan">Superfan 🔥</button>
+    </div>
+
+    <button class="btn" id="go">Enter HQ →</button>
+    <button class="btn alt" id="howBtn">How to play</button>
+  </section>
+
+  <!-- ===================== QUIZ ===================== -->
+  <section id="quiz" class="card hidden">
+    <div class="hud">
+      <span class="pill" id="qcount">Q 1 / 10</span>
+      <span class="pill" id="streakPill">🔥 0</span>
+      <span class="pts" id="score">0 pts</span>
+    </div>
+    <div class="bar"><i id="progress"></i></div>
+
+    <span class="rtag normal" id="rtag">⚡ Challenge</span>
+    <div class="timer"><i id="tbar"></i></div>
+
+    <div class="q" id="question">…</div>
+    <div class="opts" id="options"></div>
+    <div class="feed" id="feed"></div>
+    <div class="expl" id="expl"></div>
+    <button class="btn hidden" id="next">Next →</button>
+  </section>
+
+  <!-- ===================== RESULT ===================== -->
+  <section id="result" class="card center hidden">
+    <div class="rankbadge" id="rankIcon">👑</div>
+    <div class="sys" style="border-color:var(--line);color:var(--muted)"><span>Final verdict from The System</span></div>
+    <div class="rankname" id="rankName">Ace of the Week</div>
+    <div class="bigpts" id="finalPts">0</div>
+    <div style="color:var(--muted);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:4px">points banked</div>
+
+    <div class="statrow">
+      <div class="stat"><b id="stCorrect">0/0</b><span>Correct</span></div>
+      <div class="stat"><b id="stBest">0</b><span>Best streak</span></div>
+      <div class="stat"><b id="stAcc">0%</b><span>Accuracy</span></div>
+    </div>
+
+    <p class="lead" id="verdict"></p>
+
+    <button class="btn wa" id="share">📲 Challenge my group on WhatsApp</button>
+    <button class="btn alt" id="copy">Copy result text</button>
+    <button class="btn" id="again">Play again ↻</button>
+
+    <div class="lb" id="lbWrap">
+      <h3><span>🏆 Leaderboard</span><span id="lbWeek" style="color:var(--amber)"></span></h3>
+      <div class="sub" id="lbSub">Top players this week</div>
+      <div id="lbList"></div>
+      <div class="syncnote" id="syncNote"></div>
+    </div>
+  </section>
+
+  <!-- ===================== HOW TO PLAY ===================== -->
+  <section id="how" class="card hidden">
+    <h2 style="font-size:22px">How to play</h2>
+    <p class="lead">
+      • Every question is a <b>challenge</b> for points — answer fast, the timer bar shrinks and so does the reward.<br><br>
+      • <b>🔥 Streaks</b> stack a bonus: get answers right in a row to earn like an alliance on a winning run.<br><br>
+      • <b>🎯 Secret Mission</b> questions pay <b>double</b>. <b>🗡️ Veto</b> questions are traps — read carefully.<br><br>
+      • The last question is the <b>👑 Ace of the Week</b> — worth the most points of all.<br><br>
+      • Everyone playing in the same week gets the <b>same questions</b>, so the leaderboard is a fair fight.
+        A <b>fresh quiz unlocks automatically every week</b>.<br><br>
+      • Miss too many and The System <b>eliminates</b> you. Bank enough and you become <b>Master of the System</b>.<br><br>
+      • Tap the green button at the end to <b>challenge your WhatsApp group</b> to beat your score.
+    </p>
+    <button class="btn" id="howBack">← Back</button>
+  </section>
+
+  <div class="foot">
+    A fan-made trivia game celebrating <b>Alliance</b> (Prime Video). Not affiliated with Prime Video,
+    Banijay Asia, or the show's makers. All names belong to their owners.<br>
+    Made for our WhatsApp group • <span id="year"></span>
+  </div>
+</div>
+
+<div class="confetti" id="confetti"></div>
+
+<script>
+/* ============================================================
+   OPTIONAL SHARED LEADERBOARD
+   Leave "" for a per-device leaderboard (works offline, no setup).
+   Paste a Google Apps Script Web App URL here to sync scores across
+   everyone's phones. Deploy steps are in scoreboard.gs / README.
+   ============================================================ */
+const SHARED_ENDPOINT = "";   // e.g. "https://script.google.com/macros/s/AKfy.../exec"
+
+/* ============================================================
+   QUESTION BANK  —  edit freely.
+   type: "normal" | "mission" (double pts) | "veto" (trap) | "ace" (finale)
+   tier: "casual" (everyone) | "superfan" (close viewers)
+   a: index of the correct option in opts[]
+   ============================================================ */
+const BANK = [
+  // ---------- Basics (casual) ----------
+  {q:"Who hosts Alliance on Prime Video?", opts:["Kunal Kemmu","Ranvijay Singha","Karan Johar","Maniesh Paul"], a:0, tier:"casual",
+   ex:"<b>Kunal Kemmu</b> hosts Alliance — his debut as a reality-show host."},
+  {q:"On which platform does Alliance stream?", opts:["Netflix","Prime Video","JioHotstar","Sony LIV"], a:1, tier:"casual",
+   ex:"Alliance is a <b>Prime Video</b> original, streaming in Hindi."},
+  {q:"How many contestants enter the game?", opts:["12","14","16","20"], a:2, tier:"casual",
+   ex:"<b>16</b> celebrities enter HQ."},
+  {q:"At the start, contestants are grouped as…", opts:["8 duos (pairs)","4 solo captains","2 big teams","Random singles"], a:0, tier:"casual",
+   ex:"They enter as <b>8 duos</b> — but no alliance stays permanent."},
+  {q:"Inside HQ, the only 'currency' that matters is…", opts:["Cash","Points","Immunity idols","Stars"], a:1, tier:"casual",
+   ex:"Everything runs on <b>points</b>, earned through challenges."},
+  {q:"How many episodes make up the season?", opts:["24","30","42","60"], a:2, tier:"casual",
+   ex:"<b>42 episodes</b> across six weeks."},
+  {q:"How often do new episodes drop?", opts:["Weekly","Twice a week","Daily","Every weekend"], a:2, tier:"casual",
+   ex:"A new episode <b>every day at 12 noon</b> — Prime Video's first-ever daily reality release globally."},
+  {q:"What is the winner's cash prize?", opts:["₹10 lakh","₹25 lakh","₹50 lakh","₹1 crore"], a:2, tier:"casual",
+   ex:"The last player standing wins <b>₹50 lakh</b>."},
+  {q:"How many weeks does the season run for?", opts:["Four","Six","Eight","Ten"], a:1, tier:"casual",
+   ex:"The season plays out over <b>six weeks</b> and 42 episodes."},
+  {q:"What time do new episodes release each day?", opts:["9 AM","12 noon","6 PM","Midnight"], a:1, tier:"casual",
+   ex:"New episodes drop daily at <b>12 noon</b>."},
+
+  // ---------- Format / world ----------
+  {q:"The authority that makes and breaks the rules in HQ is called…", opts:["The Director","The System","The Council","Big Brother"], a:1, tier:"casual", type:"veto",
+   ex:"<b>The System</b> resets teams, tasks and alliances whenever it likes."},
+  {q:"After their duos, players group into larger alliances of…", opts:["3 members","4 members","5 members","6 members"], a:1, tier:"superfan",
+   ex:"Duos merge into <b>alliances of four</b>."},
+  {q:"Each alliance gets its own name, colour and…", opts:["Anthem","Symbol","Mascot","Handshake"], a:1, tier:"superfan",
+   ex:"Every alliance has a name, a colour and a <b>symbol</b> — its identity in the game."},
+  {q:"Which international format is Alliance based on?", opts:["A Dutch format by John de Mol","A Korean format","A British format","An original Indian idea"], a:0, tier:"superfan",
+   ex:"It's adapted from Talpa Studios' <b>Dutch format created by John de Mol</b>."},
+  {q:"Which studio produces the Indian version of Alliance?", opts:["Endemol Shine","Banijay Asia","Dharmatic","BBC Studios India"], a:1, tier:"superfan",
+   ex:"<b>Banijay Asia</b> produces the Indian adaptation."},
+  {q:"What weekly title gives a player game-changing power in HQ?", opts:["Captain","Ace of the Week","The Boss","MVP"], a:1, tier:"casual",
+   ex:"The <b>Ace of the Week</b> earns a power that reshapes the game."},
+  {q:"What language is Alliance primarily in?", opts:["English","Hindi","Tamil","Bhojpuri"], a:1, tier:"casual",
+   ex:"Alliance streams in <b>Hindi</b>."},
+  {q:"HQ challenges are mainly a mix of physical tasks and…", opts:["Cooking rounds","Mental / knowledge tasks","Karaoke","Fashion walks"], a:1, tier:"casual",
+   ex:"Players battle through <b>physical and mental</b> challenges to earn points."},
+  {q:"The underground bunker the show is set in is nicknamed…", opts:["Kunal Lok","The Vault","Alliance Manor","The Grid"], a:0, tier:"superfan",
+   ex:"The custom-built bunker is called <b>Kunal Lok</b> (aka Alliance HQ)."},
+  {q:"What is the core theme the game is built on?", opts:["Trust, strategy and betrayal","Singing and dancing","Cooking under pressure","Pure luck"], a:0, tier:"casual",
+   ex:"Alliance is a social game of <b>trust, strategy and eventual betrayal</b>."},
+  {q:"Alliance is Prime Video's first-ever original global…", opts:["Scripted daily drama","Daily reality series","Live game show","Animated series"], a:1, tier:"casual",
+   ex:"It's the streamer's <b>first-ever original global daily reality series</b>."},
+  {q:"On which date did Alliance premiere?", opts:["26 June 2026","1 January 2026","15 August 2026","10 October 2026"], a:0, tier:"superfan",
+   ex:"Alliance premiered on <b>26 June 2026</b>."},
+
+  // ---------- Cast & the 8 duos (superfan) ----------
+  {q:"Veteran Ravi Kishan entered the game paired with…", opts:["His wife","His daughter Riva Kishan","His brother","His manager"], a:1, tier:"superfan",
+   ex:"Bollywood & Bhojpuri star <b>Ravi Kishan</b> plays alongside his daughter <b>Riva Kishan</b>."},
+  {q:"Kushal Tandon's duo partner in Alliance is…", opts:["Zaid Darbar","Arslan Goni","Sabby Suri","Armaan Khera"], a:1, tier:"superfan",
+   ex:"<b>Kushal Tandon</b> is paired with actor <b>Arslan Goni</b>."},
+  {q:"Which two long-time industry friends form a duo?", opts:["Nikhil Chinapa & Mini Mathur","Daisy Shah & Niti Taylor","Ravi Kishan & Sabby Suri","Zaid Darbar & Armaan Khera"], a:0, tier:"superfan",
+   ex:"MTV VJ <b>Nikhil Chinapa</b> teams with host-actor <b>Mini Mathur</b>."},
+  {q:"Daisy Shah is paired with which content creator?", opts:["Vanshaj Singh","Zaid Darbar","Sabby Suri","Armaan Khera"], a:1, tier:"superfan",
+   ex:"<b>Daisy Shah</b> partners with <b>Zaid Darbar</b>."},
+  {q:"Gaming star Payal Dhare (Payal Gaming) is paired with…", opts:["Sabby Suri","Vanshaj Singh","Arslan Goni","Zaid Darbar"], a:0, tier:"superfan",
+   ex:"<b>Payal Dhare</b> teams with Punjabi actor <b>Sabby Suri</b>."},
+  {q:"TV actress Niti Taylor's duo partner is dancer-creator…", opts:["Dolly Javed","Ruhee Dosani","Delbar Arya","Riva Kishan"], a:1, tier:"superfan",
+   ex:"<b>Niti Taylor</b> is paired with <b>Ruhee Dosani</b>."},
+  {q:"Gaming creator Vanshaj Singh forms a duo with…", opts:["Dolly Javed","Payal Dhare","Mini Mathur","Delbar Arya"], a:0, tier:"superfan",
+   ex:"<b>Vanshaj Singh</b> teams with influencer <b>Dolly Javed</b>."},
+  {q:"Which duo is made up of Delbar Arya and…?", opts:["Armaan Khera","Sabby Suri","Zaid Darbar","Arslan Goni"], a:0, tier:"superfan",
+   ex:"<b>Delbar Arya</b> is paired with actor-musician <b>Armaan Khera</b>."},
+  {q:"Which cast member is a legendary MTV VJ?", opts:["Nikhil Chinapa","Zaid Darbar","Sabby Suri","Armaan Khera"], a:0, tier:"superfan",
+   ex:"<b>Nikhil Chinapa</b> — the iconic MTV VJ."},
+  {q:"Which father–daughter pair plays the game together?", opts:["Ravi Kishan & Riva Kishan","Ravi Kishan & Niti Taylor","Nikhil Chinapa & Mini Mathur","Zaid Darbar & Dolly Javed"], a:0, tier:"casual",
+   ex:"<b>Ravi Kishan</b> plays with his daughter <b>Riva Kishan</b>."},
+  {q:"Zaid Darbar is best known as a…", opts:["Cricketer","Dancer / content creator","News anchor","Chef"], a:1, tier:"superfan",
+   ex:"<b>Zaid Darbar</b> is a popular dancer and content creator."},
+
+  // ---------- Secret Missions (double points) ----------
+  {q:"SECRET MISSION: How many players make up each larger alliance once duos merge?", opts:["Four","Three","Five","Eight"], a:0, tier:"casual", type:"mission",
+   ex:"Alliances of <b>four</b> — two duos joining forces."},
+  {q:"SECRET MISSION: Which of these is NOT one of the show's duos?", opts:["Kushal Tandon & Arslan Goni","Ravi Kishan & Riva Kishan","Niti Taylor & Daisy Shah","Payal Dhare & Sabby Suri"], a:2, tier:"superfan", type:"mission",
+   ex:"Niti Taylor pairs with <b>Ruhee Dosani</b>, and Daisy Shah with <b>Zaid Darbar</b> — never with each other."},
+  {q:"SECRET MISSION: How many duos start the game?", opts:["Eight","Six","Four","Ten"], a:0, tier:"casual", type:"mission",
+   ex:"16 players = <b>8 duos</b> at the start."},
+  {q:"SECRET MISSION: Points inside HQ are best described as…", opts:["The game's only currency","Just for fun","A tiebreaker only","Worth nothing"], a:0, tier:"casual", type:"mission",
+   ex:"Points are literally <b>the only currency</b> inside the bunker."},
+
+  // ---------- Veto / betrayal traps ----------
+  {q:"VETO TRAP — read carefully: Which statement is FALSE about Alliance?", opts:["It streams daily on Prime Video","It is hosted by Kunal Kemmu","Contestants can never change alliances","It has 42 episodes"], a:2, tier:"casual", type:"veto",
+   ex:"Alliances <b>constantly shift</b> — that's the whole point of the game."},
+  {q:"VETO TRAP: Which of these is TRUE about the game?", opts:["No alliance is permanent","Everyone wins ₹50 lakh","There are 30 contestants","It airs only on weekends"], a:0, tier:"casual", type:"veto",
+   ex:"<b>No alliance is permanent</b> — trust can turn to betrayal any moment."},
+
+  // ---------- Ace of the Week finale ----------
+  {q:"ACE OF THE WEEK: Alliance holds a first for Prime Video worldwide. What is it?", opts:["First scripted daily drama","First-ever original global DAILY reality series","First AI-hosted show","First fully live show"], a:1, tier:"casual", type:"ace",
+   ex:"Alliance is Prime Video's <b>first-ever original global daily reality series</b> — a new episode every single day."},
+  {q:"ACE OF THE WEEK: What best sums up how to WIN Alliance?", opts:["Balance trust, strategy and deception the longest","Be the fastest runner","Get the most votes on day one","Never talk to anyone"], a:0, tier:"superfan", type:"ace",
+   ex:"The winner keeps <b>trust, strategy and deception in balance</b> and outlasts everyone."},
+  {q:"ACE OF THE WEEK: Who is the host guiding players through The System?", opts:["Kunal Kemmu","Salman Khan","Rannvijay Singha","Arjun Bijlani"], a:0, tier:"casual", type:"ace",
+   ex:"<b>Kunal Kemmu</b> is the face of HQ and The System."}
+];
+
+/* ============================================================
+   WEEKLY SEED + DETERMINISTIC RNG
+   Everyone in the same ISO week (and difficulty) gets the same set.
+   ============================================================ */
+function isoWeek(d){
+  const dt=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const day=(dt.getUTCDay()+6)%7; dt.setUTCDate(dt.getUTCDate()-day+3);
+  const firstThu=new Date(Date.UTC(dt.getUTCFullYear(),0,4));
+  const week=1+Math.round(((dt-firstThu)/86400000-3+((firstThu.getUTCDay()+6)%7))/7);
+  return {year:dt.getUTCFullYear(), week};
+}
+function weekMonday(d){
+  const x=new Date(d); const day=(x.getDay()+6)%7; x.setDate(x.getDate()-day); x.setHours(0,0,0,0); return x;
+}
+const NOW = new Date();
+const WK = isoWeek(NOW);
+const WEEK_ID = `${WK.year}-W${String(WK.week).padStart(2,"0")}`;
+const WEEK_LABEL = "Week of " + weekMonday(NOW).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+
+function xmur3(str){ let h=1779033703^str.length;
+  for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=(h<<13)|(h>>>19); }
+  return ()=>{ h=Math.imul(h^(h>>>16),2246822507); h=Math.imul(h^(h>>>13),3266489909); return (h^=h>>>16)>>>0; };
+}
+function mulberry32(a){ return ()=>{ a|=0; a=(a+0x6D2B79F5)|0; let t=Math.imul(a^(a>>>15),1|a);
+  t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
+function rngFor(seedStr){ return mulberry32(xmur3(seedStr)()); }
+function seededShuffle(arr, rng){ const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+// plain shuffle for cosmetic option order (per play)
+const shuffle=a=>{ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; };
+
+/* ============================================================
+   BUILD THIS WEEK'S QUIZ (deterministic per week + difficulty)
+   ============================================================ */
+const TIME=15, BASE=100, N_QUESTIONS=10;
+
+function weeklyQuiz(diff){
+  const rng = rngFor(WEEK_ID+"::"+diff);
+  const allow = q => diff==="superfan" ? true : q.tier==="casual";
+  const normals  = BANK.filter(x=>(x.type||"normal")==="normal" && allow(x));
+  const missions = BANK.filter(x=>x.type==="mission" && allow(x));
+  const vetos    = BANK.filter(x=>x.type==="veto" && allow(x));
+  const aces     = BANK.filter(x=>x.type==="ace" && allow(x));
+  const acesAll  = aces.length?aces:BANK.filter(x=>x.type==="ace");
+
+  let core = seededShuffle(normals, rng).slice(0,5);
+  let mis  = seededShuffle(missions, rng).slice(0,2);
+  let vet  = seededShuffle(vetos, rng).slice(0,2);
+  let ace  = seededShuffle(acesAll, rng)[0];
+
+  let mid = seededShuffle([...core, ...mis, ...vet], rng);
+  // top up if a tier is thin
+  if(mid.length < N_QUESTIONS-1){
+    const extra = seededShuffle(BANK.filter(x=>x.type!=="ace" && allow(x) && !mid.includes(x)), rng);
+    while(mid.length < N_QUESTIONS-1 && extra.length) mid.push(extra.pop());
+  }
+  mid = mid.slice(0, N_QUESTIONS-1);
+  return [...mid, ace];
+}
+
+/* ============================================================
+   ENGINE
+   ============================================================ */
+const el=id=>document.getElementById(id);
+function show(sec){ ["start","quiz","result","how"].forEach(id=>el(id).classList.add("hidden"));
+  el(sec).classList.remove("hidden"); el(sec).classList.add("fade");
+  setTimeout(()=>el(sec).classList.remove("fade"),350); window.scrollTo(0,0); }
+
+let difficulty="casual", state;
+document.querySelectorAll("#diff button").forEach(b=>{
+  b.onclick=()=>{ document.querySelectorAll("#diff button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); difficulty=b.dataset.d; };
+});
+el("weekChip").textContent = WEEK_LABEL + " • fresh set";
+el("go").onclick=start;
+el("howBtn").onclick=()=>show("how");
+el("howBack").onclick=()=>show("start");
+el("again").onclick=()=>show("start");
+el("year").textContent=NOW.getFullYear();
+el("name").addEventListener("keydown",e=>{ if(e.key==="Enter") start(); });
+
+function start(){
+  const name=(el("name").value||"").trim()||"Player";
+  try{ localStorage.setItem("allianceHQ_name", name); }catch(e){}
+  state={ name, diff:difficulty, list:weeklyQuiz(difficulty), i:0, score:0, correct:0, streak:0, best:0, timer:null, answered:false, left:TIME };
+  show("quiz"); render();
+}
+
+function render(){
+  clearInterval(state.timer);
+  state.answered=false; state.left=TIME;
+  const item=state.list[state.i]; const type=item.type||"normal";
+
+  el("qcount").textContent=`Q ${state.i+1} / ${state.list.length}`;
+  el("streakPill").textContent=`🔥 ${state.streak}`;
+  el("score").textContent=`${state.score} pts`;
+  el("progress").style.width=((state.i)/state.list.length*100)+"%";
+  el("feed").textContent=""; el("feed").className="feed";
+  el("expl").className="expl"; el("expl").innerHTML=item.ex||"";
+  el("next").classList.add("hidden");
+
+  const map={ normal:["normal","⚡ Challenge"], mission:["mission","🎯 Secret Mission · Double Points"],
+    veto:["veto","🗡️ The Veto · Trap Question"], ace:["ace","👑 Ace of the Week · Final Power"] };
+  el("rtag").className="rtag "+map[type][0]; el("rtag").textContent=map[type][1];
+  el("question").textContent=item.q;
+
+  const idx=item.opts.map((_,k)=>k); shuffle(idx);
+  const correctPos=idx.indexOf(item.a);
+  const box=el("options"); box.innerHTML="";
+  idx.forEach((origK,pos)=>{
+    const btn=document.createElement("button"); btn.className="opt";
+    btn.innerHTML=`<span class="k">${String.fromCharCode(65+pos)}</span>${item.opts[origK]}`;
+    btn.onclick=()=>answer(pos,correctPos,box,type); box.appendChild(btn);
+  });
+
+  el("tbar").style.transform="scaleX(1)";
+  const started=Date.now();
+  state.timer=setInterval(()=>{
+    const elapsed=(Date.now()-started)/1000; state.left=Math.max(0,TIME-elapsed);
+    el("tbar").style.transform=`scaleX(${state.left/TIME})`;
+    if(state.left<=0){ clearInterval(state.timer); if(!state.answered) answer(-1,correctPos,box,type); }
+  },100);
+}
+
+function answer(pos, correctPos, box, type){
+  if(state.answered) return; state.answered=true; clearInterval(state.timer);
+  const buttons=[...box.children];
+  buttons.forEach((b,k)=>{ b.disabled=true;
+    if(k===correctPos) b.classList.add("correct");
+    else if(k===pos) b.classList.add("wrong"); else b.classList.add("dim"); });
+
+  const ok=pos===correctPos;
+  const mult=type==="mission"?2:type==="ace"?3:type==="veto"?1.5:1;
+  if(ok){
+    const speed=Math.round((state.left/TIME)*80);
+    const streakBonus=state.streak*20;
+    const gained=Math.round((BASE+speed+streakBonus)*mult);
+    state.score+=gained; state.correct++; state.streak++; state.best=Math.max(state.best,state.streak);
+    el("feed").className="feed good";
+    el("feed").innerHTML=`✅ +${gained} pts`+(state.streak>1?` · <span class="streak">🔥 ${state.streak} streak</span>`:"")+(mult>1?` · ×${mult}`:"");
+  } else {
+    state.streak=0; el("feed").className="feed bad";
+    el("feed").textContent = pos===-1 ? "⏱️ Time up — The System takes the point." : "❌ Not this time.";
+  }
+  el("score").textContent=`${state.score} pts`; el("streakPill").textContent=`🔥 ${state.streak}`;
+  el("expl").classList.add("show");
+
+  const last=state.i>=state.list.length-1; const nb=el("next");
+  nb.textContent=last?"See The System's verdict →":"Next →"; nb.classList.remove("hidden");
+  nb.onclick=()=>{ if(last) finish(); else { state.i++; render(); } };
+}
+
+/* ---- ranks ---- */
+const RANKS=[
+  {min:0.00, icon:"💀", name:"Eliminated", note:"The System sent you home early. Rewatch a few episodes and run it back!"},
+  {min:0.35, icon:"🧩", name:"Rookie Ally", note:"You know the basics — but the superfans are still ahead of you."},
+  {min:0.55, icon:"🛡️", name:"Survivor", note:"Solid game. You'd have made the merge for sure."},
+  {min:0.72, icon:"👑", name:"Ace of the Week", note:"Impressive — you clearly follow Alliance closely. Power is yours."},
+  {min:0.88, icon:"🧠", name:"Master of the System", note:"Flawless. Even The System couldn't outplay you. Absolute superfan."}
+];
+function rankFor(f){ let r=RANKS[0]; for(const x of RANKS) if(f>=x.min) r=x; return r; }
+
+function finish(){
+  const maxApprox=state.list.reduce((s,q)=>{ const m=q.type==="mission"?2:q.type==="ace"?3:q.type==="veto"?1.5:1;
+    return s+(BASE+80)*m; },0);
+  const frac=Math.min(1,state.score/maxApprox); const rank=rankFor(frac);
+
+  el("rankIcon").textContent=rank.icon; el("rankName").textContent=rank.name;
+  el("finalPts").textContent=state.score.toLocaleString();
+  el("stCorrect").textContent=`${state.correct}/${state.list.length}`;
+  el("stBest").textContent=state.best;
+  el("stAcc").textContent=Math.round(state.correct/state.list.length*100)+"%";
+  el("verdict").innerHTML=`<b style="color:var(--ink)">${escapeHtml(state.name)}</b>, ${rank.note}`;
+  el("lbWeek").textContent=WEEK_LABEL;
+
+  saveScore(state.name, state.score, state.diff);
+  renderLB(state.name, state.score);
+  syncAndRenderLB(state.name, state.score, state.diff);
+  show("result");
+  if(frac>=0.72) burst();
+
+  const text=shareText(rank);
+  el("share").onclick=()=>window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
+  el("copy").onclick=async()=>{ try{ await navigator.clipboard.writeText(text);
+    el("copy").textContent="Copied ✓"; setTimeout(()=>el("copy").textContent="Copy result text",1600);}catch(e){ alert(text);} };
+}
+
+function shareText(rank){
+  return `🕹️ ALLIANCE HQ — ${WEEK_LABEL}\n`+
+    `${rank.icon} I ranked "${rank.name}" with ${state.score.toLocaleString()} points `+
+    `(${state.correct}/${state.list.length} correct)!\n\n`+
+    `Same questions for everyone this week — think you follow Alliance more closely than me? Beat my score 👇\n`+
+    `${location.href.split("#")[0]}`;
+}
+
+/* ---- confetti ---- */
+function burst(){
+  const c=el("confetti"); c.innerHTML="";
+  const cols=["#25e0d4","#7b6bff","#ffcb45","#39d98a","#ff5c6c"];
+  for(let i=0;i<90;i++){ const s=document.createElement("i");
+    s.style.left=Math.random()*100+"vw"; s.style.background=cols[(Math.random()*cols.length)|0];
+    s.style.animationDuration=(2.6+Math.random()*2)+"s"; s.style.animationDelay=(Math.random()*.6)+"s";
+    s.style.transform=`rotate(${Math.random()*360}deg)`; c.appendChild(s); }
+  setTimeout(()=>c.innerHTML="",6000);
+}
+
+/* ============================================================
+   LEADERBOARD  (per-week, persistent, best-score-per-player)
+   Local first; optionally synced via SHARED_ENDPOINT.
+   ============================================================ */
+const LB_KEY="allianceHQ_lb_v2::"+WEEK_ID;
+function readLocal(){ try{ return JSON.parse(localStorage.getItem(LB_KEY))||[]; }catch(e){ return []; } }
+function writeLocal(a){ try{ localStorage.setItem(LB_KEY, JSON.stringify(a)); }catch(e){} }
+
+function mergeScores(list){
+  // keep best score per (name) — case-insensitive
+  const best={};
+  for(const r of list){
+    if(!r||typeof r.score!=="number") continue;
+    const key=(r.name||"Player").toLowerCase();
+    if(!best[key] || r.score>best[key].score) best[key]={name:r.name||"Player", score:r.score, diff:r.diff||"casual"};
+  }
+  return Object.values(best).sort((a,b)=>b.score-a.score).slice(0,20);
+}
+function saveScore(name, score, diff){
+  const merged=mergeScores([...readLocal(), {name, score, diff}]);
+  writeLocal(merged);
+}
+function renderLB(meName, meScore, cloud){
+  const lb=cloud||readLocal(); const list=el("lbList"); list.innerHTML="";
+  if(!lb.length){ list.innerHTML='<div style="color:var(--muted);font-size:13px">No scores yet — you\'re the first to play this week!</div>'; return; }
+  const medals=["🥇","🥈","🥉"]; let marked=false;
+  lb.slice(0,10).forEach((r,i)=>{
+    const isMe=!marked && r.name.toLowerCase()===String(meName).toLowerCase() && r.score===meScore; if(isMe) marked=true;
+    const row=document.createElement("div"); row.className="lbrow"+(isMe?" me":"");
+    row.innerHTML=`<span class="rk">${i<3?`<span class="medal">${medals[i]}</span>`:i+1}</span>`+
+      `<span class="nm">${escapeHtml(r.name)}${isMe?" (you)":""}</span>`+
+      `<span class="sc">${r.score.toLocaleString()}</span>`;
+    list.appendChild(row);
+  });
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+
+/* ---- optional cloud sync (Google Apps Script Web App) ---- */
+async function syncAndRenderLB(name, score, diff){
+  const note=el("syncNote");
+  if(!SHARED_ENDPOINT){ note.textContent="Scores are saved on this device. Turn on the shared board to sync across the group (see README)."; return; }
+  el("lbSub").textContent="Top players this week — synced across the group";
+  note.textContent="Syncing with the group…";
+  try{
+    const controller=new AbortController(); const t=setTimeout(()=>controller.abort(),8000);
+    await fetch(SHARED_ENDPOINT,{ method:"POST", signal:controller.signal,
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({week:WEEK_ID, name, score, diff}) });
+    const res=await fetch(SHARED_ENDPOINT+"?week="+encodeURIComponent(WEEK_ID),{signal:controller.signal});
+    clearTimeout(t);
+    const data=await res.json();
+    const cloud=mergeScores(Array.isArray(data)?data:(data.scores||[]));
+    // merge cloud into local so the device board stays warm too
+    writeLocal(mergeScores([...readLocal(), ...cloud]));
+    renderLB(name, score, cloud);
+    note.textContent="✅ Live group leaderboard • "+WEEK_LABEL;
+  }catch(e){
+    note.textContent="⚠️ Couldn't reach the group board — showing this device's scores.";
+  }
+}
+
+// prefill last used name
+try{ const n=localStorage.getItem("allianceHQ_name"); if(n) el("name").value=n; }catch(e){}
+</script>
+</body>
+</html>
