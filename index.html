@@ -9,6 +9,7 @@
 <meta property="og:title" content="Alliance HQ — Weekly Trivia Challenge" />
 <meta property="og:description" content="Think you follow Alliance closely? Enter HQ, beat the clock, and climb from Eliminated to Master of the System. New quiz every week + daily bonus." />
 <meta property="og:type" content="website" />
+<meta property="og:image" content="assets/d-alliance.png" />
 <style>
   :root{
     --bg:#070a14; --bg2:#0d1220; --panel:#121a2e; --panel2:#0f1626;
@@ -60,6 +61,24 @@
     background:linear-gradient(180deg,rgba(255,203,69,.12),rgba(255,203,69,.03));text-align:center;font-size:14px;line-height:1.4}
   .winner .crown{font-size:22px;display:block;margin-bottom:2px}
   .winner b{color:var(--amber)}
+  .rtimerwrap{text-align:center;margin-top:10px}
+  .rtimer{display:inline-block;font-size:12.5px;color:var(--muted);border:1px solid var(--line);
+    background:rgba(255,255,255,.03);border-radius:999px;padding:7px 14px}
+  .rtimer b{color:var(--amber);font-variant-numeric:tabular-nums;letter-spacing:.03em}
+  .ahero{margin-top:16px}
+  .ahero>img{width:100%;border-radius:16px;border:1px solid var(--line);display:none}
+  .acaption{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;text-align:center}
+  .acard{border:1px solid var(--line);border-radius:16px;padding:14px;
+    background:linear-gradient(180deg,rgba(37,224,212,.05),rgba(123,107,255,.06))}
+  .acard .ahead{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900;
+    letter-spacing:.14em;font-size:16px;margin-bottom:12px;text-transform:uppercase}
+  .agrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .amem{border:1px solid var(--line);border-radius:12px;padding:11px 8px;text-align:center;
+    background:linear-gradient(180deg,#0c1526,#0a1120)}
+  .amem .an{font-weight:800;font-size:15px;letter-spacing:.02em}
+  .amem .at{font-size:11px;color:var(--muted);margin-top:2px}
+  .amem .cap{display:inline-block;margin-left:5px;font-size:10px;color:#241500;background:var(--amber);
+    border-radius:5px;padding:0 5px;font-weight:900;vertical-align:middle}
   p.lead{color:var(--muted);line-height:1.55;font-size:15px;margin:12px 0 4px}
   .rounds{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0 6px;text-align:left}
   .rnd{border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:rgba(255,255,255,.02)}
@@ -169,12 +188,28 @@
 <div class="wrap">
 
   <div class="brand"><span class="logo"></span><h1>Alliance&nbsp;HQ</h1></div>
+  <div class="rtimerwrap"><span class="rtimer" id="refreshTimer">⏳ …</span></div>
 
   <!-- ===================== START ===================== -->
   <section id="start" class="card center fade">
     <span class="sys"><span class="dot"></span> The System is online</span>
     <h2>Weekly Trivia Challenge</h2>
     <div class="weekchip" id="weekChip">This Week's Challenge</div>
+
+    <!-- Featured family alliance (auto-uses assets/d-alliance.png if present) -->
+    <div class="ahero">
+      <p class="acaption">Today's Featured Alliance</p>
+      <img id="allianceImg" src="assets/d-alliance.png" alt="D-Alliance" />
+      <div class="acard" id="allianceCard">
+        <div class="ahead">👑 D-Alliance</div>
+        <div class="agrid">
+          <div class="amem"><div class="an">Ditya<span class="cap">C</span></div><div class="at">Cuteness</div></div>
+          <div class="amem"><div class="an">Pooja</div><div class="at">Intellectual</div></div>
+          <div class="amem"><div class="an">Harsh</div><div class="at">Agility</div></div>
+          <div class="amem"><div class="an">Puneet</div><div class="at">Strength</div></div>
+        </div>
+      </div>
+    </div>
 
     <div class="winner hidden" id="winnerBanner"></div>
 
@@ -879,6 +914,29 @@ el("boardBtn").onclick=()=>{
     alert("Group leaderboard turned off. Scores now stay on this device.");
   }
 };
+
+/* ---- featured alliance photo: use assets/d-alliance.png if it exists ---- */
+(function(){ const img=el("allianceImg"), card=el("allianceCard");
+  if(!img) return;
+  img.onload=()=>{ img.style.display="block"; if(card) card.style.display="none"; };
+  img.onerror=()=>{ img.style.display="none"; };  // fall back to the built-in card
+})();
+
+/* ---- countdown to the next daily refresh (auto-reloads at midnight) ---- */
+(function(){
+  const box=el("refreshTimer"); if(!box) return;
+  function two(n){ return String(n).padStart(2,"0"); }
+  function tick(){
+    const now=new Date();
+    const cur=`${now.getFullYear()}-${two(now.getMonth()+1)}-${two(now.getDate())}`;
+    if(cur!==DATE_ID){ location.reload(); return; }              // new day → load fresh riddles
+    const mid=new Date(now); mid.setHours(24,0,0,0);             // next local midnight
+    let s=Math.max(0,Math.floor((mid-now)/1000));
+    const h=Math.floor(s/3600), m=Math.floor((s%3600)/60); s=s%60;
+    box.innerHTML=`⏳ New riddles in <b>${two(h)}:${two(m)}:${two(s)}</b>`;
+  }
+  tick(); setInterval(tick,1000);
+})();
 
 /* init */
 try{ const n=localStorage.getItem("allianceHQ_name"); if(n) el("name").value=n; }catch(e){}
