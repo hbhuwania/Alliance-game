@@ -201,7 +201,7 @@
     </div>
 
     <button class="btn" id="go">Enter HQ →</button>
-    <button class="btn gold" id="bonusBtn">🎁 Daily Bonus<span class="badgeDot hidden" id="bonusDot"></span></button>
+    <button class="btn gold" id="bonusBtn">🧩 Today's Challenge (5 riddles)<span class="badgeDot hidden" id="bonusDot"></span></button>
     <button class="btn alt" id="howBtn">How to play</button>
     <br><button class="linkbtn" id="boardBtn">🌐 Group leaderboard: Off</button>
 
@@ -283,7 +283,7 @@
       • <b>🔥 Streaks</b> stack a bonus: get answers right in a row to earn like an alliance on a winning run.<br><br>
       • <b>🎯 Secret Mission</b> questions pay <b>double</b>. <b>🗡️ Veto</b> questions are traps — read carefully.<br><br>
       • The last question is the <b>👑 Ace of the Week</b> — worth the most points of all.<br><br>
-      • <b>🎁 Daily Bonus</b>: one extra question every day (same for everyone), one shot — its points add to your weekly total.<br><br>
+      • <b>🧩 Today's Challenge</b>: 5 riddles every day (same for everyone), 60 seconds each — a fresh set daily, and the points add to your weekly total.<br><br>
       • Everyone playing in the same week gets the <b>same questions</b>, so the leaderboard is a fair fight.
         A <b>fresh quiz unlocks automatically every week</b>, and last week's #1 is crowned <b>Ace of the Week</b> on the home screen.<br><br>
       • Tap the green button at the end to <b>challenge your WhatsApp group</b> to beat your score.
@@ -555,20 +555,41 @@ document.querySelectorAll("#diff button").forEach(b=>{
     b.classList.add("on"); difficulty=b.dataset.d; };
 });
 el("weekChip").textContent = WEEK_LABEL + " • fresh set";
-el("go").onclick=start;
+el("go").onclick=()=>start("weekly");
 el("howBtn").onclick=()=>show("how");
 el("howBack").onclick=()=>show("start");
 el("again").onclick=()=>{ refreshHome(); show("start"); };
-el("bonusBtn").onclick=openBonus;
+el("bonusBtn").onclick=()=>start("daily");
 el("bdone").onclick=()=>{ refreshHome(); show("start"); };
 el("year").textContent=NOW.getFullYear();
-el("name").addEventListener("keydown",e=>{ if(e.key==="Enter") start(); });
+el("name").addEventListener("keydown",e=>{ if(e.key==="Enter") start("weekly"); });
 
 /* ---- MAIN QUIZ ---- */
-function start(){
+function start(mode){
+  mode = (mode==="daily") ? "daily" : "weekly";
   const name=getName(); try{ localStorage.setItem("allianceHQ_name", name); }catch(e){}
-  state={ name, diff:difficulty, list:weeklyQuiz(difficulty), i:0, score:0, correct:0, streak:0, best:0, timer:null, answered:false, left:TIME };
+  const list = mode==="daily" ? dailyChallenge() : weeklyQuiz(difficulty);
+  state={ name, mode, diff:difficulty, list, i:0, score:0, correct:0, streak:0, best:0, timer:null, answered:false, left:TIME };
   show("quiz"); render();
+}
+/* Today's Challenge = 5 riddles, changes every day, same for everyone */
+function dailyChallenge(){
+  const rng=rngFor("DAILYRIDDLES::"+DATE_ID);
+  const riddles=BANK.filter(x=>x.type==="riddle");
+  let picked=seededShuffle(riddles,rng).slice(0,5);
+  if(picked.length<5){ // safety top-up if the riddle bank is small
+    const extra=seededShuffle(BANK.filter(x=>x.type!=="ace"&&!picked.includes(x)),rng);
+    while(picked.length<5&&extra.length) picked.push(extra.pop());
+  }
+  return picked;
+}
+/* credit today's challenge into the weekly total, once per day (best score kept) */
+function recordDaily(name,score,diff){
+  const s=readWeek(WEEK_ID); const p=playerRec(s,name);
+  if(!p.dailyDays) p.dailyDays={};
+  const prev=p.dailyDays[DATE_ID]||0;
+  if(score>prev){ p.bonus=(p.bonus||0)+(score-prev); p.dailyDays[DATE_ID]=score; }
+  p.diff=diff; writeWeek(WEEK_ID,s); markBonusDone(); return totalOf(p);
 }
 function render(){
   clearInterval(state.timer); state.answered=false;
@@ -636,7 +657,9 @@ function finish(){
   el("verdict").innerHTML=`<b style="color:var(--ink)">${escapeHtml(state.name)}</b>, ${rank.note}`;
   el("lbWeek").textContent=WEEK_LABEL;
 
-  const total=recordQuiz(state.name,state.score,state.diff);
+  const total = state.mode==="daily"
+    ? recordDaily(state.name,state.score,state.diff)
+    : recordQuiz(state.name,state.score,state.diff);
   renderLB(localBoard(), state.name);
   el("lbSub").textContent = SHARED_ENDPOINT ? "Top players this week — synced across the group" : "Top players this week (this device)";
   el("syncNote").textContent = SHARED_ENDPOINT ? "Syncing with the group…" : "Saved on this device. Tap “Group leaderboard” on the home screen to sync everyone.";
@@ -674,6 +697,12 @@ async function copyText(text, btn){
   alert(text); return false;
 }
 function shareText(rank){
+  if(state.mode==="daily"){
+    return `🧩 ALLIANCE HQ — Today's Riddle Challenge\n`+
+      `I solved ${state.correct}/${state.list.length} riddles for ${state.score.toLocaleString()} points today!\n\n`+
+      `Same 5 riddles for everyone today — can you beat me? 👇\n`+
+      `${groupLink()}`;
+  }
   return `🕹️ ALLIANCE HQ — ${WEEK_LABEL}\n`+
     `${rank.icon} I ranked "${rank.name}" with ${state.score.toLocaleString()} points (${state.correct}/${state.list.length} correct)!\n\n`+
     `Same questions for everyone this week — think you follow Alliance more closely than me? Beat my score 👇\n`+
@@ -787,7 +816,7 @@ function refreshHome(){
   if(SHARED_ENDPOINT){ cloudGet(WEEK_ID).then(a=>{ if(a) paintHomeLb(a, true); }); }
   // daily bonus availability
   el("bonusDot").classList.toggle("hidden", bonusDoneToday());
-  el("bonusBtn").firstChild.textContent = bonusDoneToday() ? "🎁 Daily Bonus (done today)" : "🎁 Daily Bonus";
+  el("bonusBtn").firstChild.textContent = bonusDoneToday() ? "🧩 Today's Challenge (played today)" : "🧩 Today's Challenge (5 riddles)";
   // group board button
   el("boardBtn").textContent = SHARED_ENDPOINT ? "🌐 Group leaderboard: On — tap to change" : "🌐 Group leaderboard: Off — tap to set up";
 }
