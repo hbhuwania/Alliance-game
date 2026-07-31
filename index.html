@@ -424,6 +424,44 @@ const BANK = [
    ex:"<b>Points</b> — the only currency inside HQ."},
   {q:"RIDDLE: What is so fragile that saying its name breaks it?", opts:["Silence","Trust","A rumour","An alliance"], a:0, tier:"casual", type:"riddle",
    ex:"<b>Silence</b> — say the word and it's gone."},
+  {q:"RIDDLE: I have a name, a colour and a symbol, and four members call me home. What am I?", opts:["An alliance","A duo","The System","HQ"], a:0, tier:"casual", type:"riddle",
+   ex:"An <b>alliance</b> — its identity in the game."},
+  {q:"RIDDLE: Win me at the week's first challenge and I hand you game-changing power. What am I?", opts:["Ace of the Week","The cash prize","A veto","A wildcard"], a:0, tier:"casual", type:"riddle",
+   ex:"The <b>Ace of the Week</b> — the week's biggest power."},
+  {q:"RIDDLE: I'm cast in secret in HQ; I can save you or sink you. What am I?", opts:["A vote","A point","A key","A camera"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>vote</b> — the quiet weapon of the game."},
+  {q:"RIDDLE: I arrive mid-game, shake up the teams, and I'm brand new here. What am I?", opts:["A wildcard","The host","A duo","The prize"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>wildcard</b> — the twist that resets everything."},
+  {q:"RIDDLE: What comes down but never goes up?", opts:["Rain","A balloon","Smoke","A kite"], a:0, tier:"casual", type:"riddle",
+   ex:"<b>Rain</b> — it only falls."},
+  {q:"RIDDLE: I speak without a mouth and hear without ears; I have no body, but I come alive with wind. What am I?", opts:["An echo","A ghost","A phone","A rumour"], a:0, tier:"casual", type:"riddle",
+   ex:"An <b>echo</b>."},
+  {q:"RIDDLE: What has a neck but no head, and two arms but no hands?", opts:["A shirt","A bottle","A tree","A clock"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>shirt</b>."},
+  {q:"RIDDLE: What has hands but cannot clap?", opts:["A clock","A statue","A robot","A glove"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>clock</b>."},
+  {q:"RIDDLE: What is full of words but never speaks?", opts:["A book","A parrot","A phone","A radio"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>book</b>."},
+  {q:"RIDDLE: What can you catch but never throw?", opts:["A cold","A ball","A fish","A frisbee"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>cold</b>."},
+  {q:"RIDDLE: What goes up but never comes down?", opts:["Your age","A ball","The moon","A lift"], a:0, tier:"casual", type:"riddle",
+   ex:"Your <b>age</b>."},
+  {q:"RIDDLE: I run but never walk, I have a bed but never sleep. What am I?", opts:["A river","A dog","A car","A clock"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>river</b>."},
+  {q:"RIDDLE: The more of it there is, the less you see. What is it?", opts:["Darkness","Light","Water","Sound"], a:0, tier:"casual", type:"riddle",
+   ex:"<b>Darkness</b>."},
+  {q:"RIDDLE: What is full of holes but still holds water?", opts:["A sponge","A net","A bag","A basket"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>sponge</b>."},
+  {q:"RIDDLE: What has a thumb and four fingers but is not alive?", opts:["A glove","A hand","A statue","A robot"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>glove</b>."},
+  {q:"RIDDLE: Which building has the most stories?", opts:["A library","A hospital","A hotel","A stadium"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>library</b> — full of stories."},
+  {q:"RIDDLE: I'm tall when I'm young and short when I'm old. What am I?", opts:["A candle","A tree","A person","A shadow"], a:0, tier:"casual", type:"riddle",
+   ex:"A <b>candle</b>."},
+  {q:"RIDDLE: What can fill a whole room yet takes up no space?", opts:["Light","Air","Water","Smoke"], a:0, tier:"casual", type:"riddle",
+   ex:"<b>Light</b>."},
+  {q:"RIDDLE: Two enter as allies; take away trust and we become…?", opts:["Rivals","Friends","Winners","Partners"], a:0, tier:"casual", type:"riddle",
+   ex:"<b>Rivals</b> — the game's core twist."},
 
   {q:"ACE OF THE WEEK: Alliance holds a first for Prime Video worldwide. What is it?", opts:["First scripted daily drama","First-ever original global DAILY reality series","First AI-hosted show","First fully live show"], a:1, tier:"casual", type:"ace",
    ex:"Alliance is Prime Video's <b>first-ever original global daily reality series</b> — a new episode every single day."},
@@ -454,6 +492,8 @@ const WEEK_ID=weekIdOf(NOW), WEEK_LABEL=weekLabelOf(NOW);
 const LAST=new Date(NOW); LAST.setDate(LAST.getDate()-7);
 const LAST_WEEK_ID=weekIdOf(LAST), LAST_WEEK_LABEL=weekLabelOf(LAST);
 const DATE_ID=`${NOW.getFullYear()}-${String(NOW.getMonth()+1).padStart(2,"0")}-${String(NOW.getDate()).padStart(2,"0")}`;
+const DAY_INDEX=Math.floor(Date.UTC(NOW.getFullYear(),NOW.getMonth(),NOW.getDate())/86400000); // days since epoch
+const WEEK_INDEX=Math.floor(DAY_INDEX/7);
 
 /* seeded RNG */
 function xmur3(str){ let h=1779033703^str.length;
@@ -572,15 +612,16 @@ function start(mode){
   state={ name, mode, diff:difficulty, list, i:0, score:0, correct:0, streak:0, best:0, timer:null, answered:false, left:TIME };
   show("quiz"); render();
 }
-/* Today's Challenge = 5 riddles, changes every day, same for everyone */
+/* Today's Challenge = 5 riddles, changes every day WITHOUT repeating.
+   We fix one shuffled master order, then each day takes the NEXT window of
+   5, advancing daily. No riddle repeats until the whole bank is used up. */
 function dailyChallenge(){
-  const rng=rngFor("DAILYRIDDLES::"+DATE_ID);
   const riddles=BANK.filter(x=>x.type==="riddle");
-  let picked=seededShuffle(riddles,rng).slice(0,5);
-  if(picked.length<5){ // safety top-up if the riddle bank is small
-    const extra=seededShuffle(BANK.filter(x=>x.type!=="ace"&&!picked.includes(x)),rng);
-    while(picked.length<5&&extra.length) picked.push(extra.pop());
-  }
+  const n=riddles.length; if(!n) return [];
+  const order=seededShuffle(riddles, rngFor("RIDDLE-ORDER-v1")); // stable order for everyone
+  const need=Math.min(5,n);
+  const start=((DAY_INDEX*need)%n+n)%n;
+  const picked=[]; for(let i=0;i<need;i++) picked.push(order[(start+i)%n]);
   return picked;
 }
 /* credit today's challenge into the weekly total, once per day (best score kept) */
