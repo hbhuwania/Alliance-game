@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <meta name="theme-color" content="#0a0e1a" />
 <title>Alliance HQ — Trivia Challenge</title>
-<meta name="description" content="A fan trivia game for Prime Video's reality show Alliance. Enter HQ, earn points, and see if you can become Ace of the Week. New challenge every week, plus a daily bonus." />
-<meta property="og:title" content="Alliance HQ — Weekly Trivia Challenge" />
-<meta property="og:description" content="Think you follow Alliance closely? Enter HQ, beat the clock, and climb from Eliminated to Master of the System. New quiz every week + daily bonus." />
+<meta name="description" content="A fan trivia game for Prime Video's reality show Alliance. Enter HQ, earn points, and see if you can become Ace of the Day. A fresh challenge every day, plus daily riddles." />
+<meta property="og:title" content="Alliance HQ — Daily Trivia Challenge" />
+<meta property="og:description" content="Think you follow Alliance closely? Enter HQ, beat the clock, and climb from Eliminated to Master of the System. A fresh quiz every day + daily riddles." />
 <meta property="og:type" content="website" />
 <meta property="og:image" content="assets/d-alliance.png" />
 <style>
@@ -193,8 +193,8 @@
   <!-- ===================== START ===================== -->
   <section id="start" class="card center fade">
     <span class="sys"><span class="dot"></span> The System is online</span>
-    <h2>Weekly Trivia Challenge</h2>
-    <div class="weekchip" id="weekChip">This Week's Challenge</div>
+    <h2>Daily Trivia Challenge</h2>
+    <div class="weekchip" id="weekChip">Today's fresh set</div>
 
     <!-- Featured family alliance (auto-uses assets/d-alliance.png if present) -->
     <div class="ahero">
@@ -215,8 +215,8 @@
 
     <p class="lead">Sixteen players. Eight duos. One HQ run by <b style="color:var(--ink)">The System</b>.
       Answer fast to bank <b style="color:var(--amber)">points</b> — the only currency in the bunker.
-      Everyone gets the <b style="color:var(--ink)">same set this week</b>, so it's a fair fight —
-      and a <b style="color:var(--ink)">brand-new quiz drops every week</b>.</p>
+      Everyone gets the <b style="color:var(--ink)">same set today</b>, so it's a fair fight —
+      and a <b style="color:var(--ink)">brand-new quiz drops every day</b>.</p>
 
     <div class="rounds">
       <div class="rnd"><b>⚡ Rapid Challenges</b><span>Beat the clock for more points</span></div>
@@ -241,7 +241,7 @@
     <br><button class="linkbtn" id="boardBtn">🌐 Group leaderboard: Off</button>
 
     <div class="lb hidden" id="homeLb" style="margin-top:20px">
-      <h3><span>🏆 This week's players</span><span style="color:var(--amber)" id="homeLbWeek"></span></h3>
+      <h3><span>🏆 Today's players</span><span style="color:var(--amber)" id="homeLbWeek"></span></h3>
       <div class="sub" id="homeLbSub">Top scores so far</div>
       <div id="homeLbList"></div>
     </div>
@@ -304,7 +304,7 @@
 
     <div class="lb" id="lbWrap">
       <h3><span>🏆 Leaderboard</span><span id="lbWeek" style="color:var(--amber)"></span></h3>
-      <div class="sub" id="lbSub">Top players this week</div>
+      <div class="sub" id="lbSub">Top players today</div>
       <div id="lbList"></div>
       <div class="syncnote" id="syncNote"></div>
     </div>
@@ -318,9 +318,9 @@
       • <b>🔥 Streaks</b> stack a bonus: get answers right in a row to earn like an alliance on a winning run.<br><br>
       • <b>🎯 Secret Mission</b> questions pay <b>double</b>. <b>🗡️ Veto</b> questions are traps — read carefully.<br><br>
       • The last question is the <b>👑 Ace of the Week</b> — worth the most points of all.<br><br>
-      • <b>🧩 Today's Challenge</b>: 5 riddles every day (same for everyone), 60 seconds each — a fresh set daily, and the points add to your weekly total.<br><br>
-      • Everyone playing in the same week gets the <b>same questions</b>, so the leaderboard is a fair fight.
-        A <b>fresh quiz unlocks automatically every week</b>, and last week's #1 is crowned <b>Ace of the Week</b> on the home screen.<br><br>
+      • <b>🧩 Today's Challenge</b>: 5 riddles every day (same for everyone), 60 seconds each — a fresh set daily, and the points add to your daily total.<br><br>
+      • Everyone playing on the <b>same day</b> gets the <b>same questions</b>, so the leaderboard is a fair fight.
+        A <b>fresh quiz unlocks automatically every day</b>, and yesterday's #1 is crowned <b>Ace of the Day</b> on the home screen.<br><br>
       • Tap the green button at the end to <b>challenge your WhatsApp group</b> to beat your score.
     </p>
     <button class="btn" id="howBack">← Back</button>
@@ -523,10 +523,13 @@ function weekMonday(d){ const x=new Date(d); const day=(x.getDay()+6)%7; x.setDa
 function weekIdOf(d){ const w=isoWeek(d); return `${w.year}-W${String(w.week).padStart(2,"0")}`; }
 function weekLabelOf(d){ return "Week of "+weekMonday(d).toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
 
-const WEEK_ID=weekIdOf(NOW), WEEK_LABEL=weekLabelOf(NOW);
-const LAST=new Date(NOW); LAST.setDate(LAST.getDate()-7);
-const LAST_WEEK_ID=weekIdOf(LAST), LAST_WEEK_LABEL=weekLabelOf(LAST);
 const DATE_ID=`${NOW.getFullYear()}-${String(NOW.getMonth()+1).padStart(2,"0")}-${String(NOW.getDate()).padStart(2,"0")}`;
+const DATE_LABEL=NOW.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+/* Leaderboard resets DAILY. The WEEK_* names are kept to minimise churn but now point at the current day / yesterday. */
+const WEEK_ID=DATE_ID, WEEK_LABEL=DATE_LABEL;
+const YDAY=new Date(NOW); YDAY.setDate(YDAY.getDate()-1);
+const LAST_WEEK_ID=`${YDAY.getFullYear()}-${String(YDAY.getMonth()+1).padStart(2,"0")}-${String(YDAY.getDate()).padStart(2,"0")}`;
+const LAST_WEEK_LABEL=YDAY.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
 const DAY_INDEX=Math.floor(Date.UTC(NOW.getFullYear(),NOW.getMonth(),NOW.getDate())/86400000); // days since epoch
 const WEEK_INDEX=Math.floor(DAY_INDEX/7);
 
@@ -555,7 +558,7 @@ const shuffle=a=>{ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0
    THIS WEEK'S QUIZ (deterministic per week + difficulty)
    ============================================================ */
 function weeklyQuiz(diff){
-  const rng=rngFor(WEEK_ID+"::"+diff);
+  const rng=rngFor(DATE_ID+"::"+diff);   // fresh 10-question set each day (matches the midnight countdown)
   const allow=q=>diff==="superfan"?true:q.tier==="casual";
   const normals=BANK.filter(x=>(x.type||"normal")==="normal"&&allow(x));
   const missions=BANK.filter(x=>x.type==="mission"&&allow(x));
@@ -629,7 +632,7 @@ document.querySelectorAll("#diff button").forEach(b=>{
   b.onclick=()=>{ document.querySelectorAll("#diff button").forEach(x=>x.classList.remove("on"));
     b.classList.add("on"); difficulty=b.dataset.d; };
 });
-el("weekChip").textContent = WEEK_LABEL + " • fresh set";
+el("weekChip").textContent = DATE_LABEL + " • fresh set today";
 el("go").onclick=()=>start("weekly");
 el("howBtn").onclick=()=>show("how");
 el("howBack").onclick=()=>show("start");
@@ -737,7 +740,7 @@ function finish(){
     ? recordDaily(state.name,state.score,state.diff)
     : recordQuiz(state.name,state.score,state.diff);
   renderLB(localBoard(), state.name);
-  el("lbSub").textContent = SHARED_ENDPOINT ? "Top players this week — synced across the group" : "Top players this week (this device)";
+  el("lbSub").textContent = SHARED_ENDPOINT ? "Top players today — synced across the group" : "Top players today (this device)";
   el("syncNote").textContent = SHARED_ENDPOINT ? "Syncing with the group…" : "Saved on this device. Tap “Group leaderboard” on the home screen to sync everyone.";
   if(SHARED_ENDPOINT){ (async()=>{ await cloudPost(WEEK_ID,state.name,total,state.diff);
       const cloud=await cloudGet(WEEK_ID);
@@ -781,7 +784,7 @@ function shareText(rank){
   }
   return `🕹️ ALLIANCE HQ — ${WEEK_LABEL}\n`+
     `${rank.icon} I ranked "${rank.name}" with ${state.score.toLocaleString()} points (${state.correct}/${state.list.length} correct)!\n\n`+
-    `Same questions for everyone this week — think you follow Alliance more closely than me? Beat my score 👇\n`+
+    `Same questions for everyone today — think you follow Alliance more closely than me? Beat my score 👇\n`+
     `${groupLink()}`;
 }
 
@@ -828,7 +831,7 @@ function bonusAnswer(pos, correctPos, box){
   if(ok){
     const gained=Math.round(BONUS_BASE + (bonusState.left/TIME)*80);
     el("bonusPts").textContent="+"+gained;
-    el("bfeed").className="feed good"; el("bfeed").innerHTML=`🎁 +${gained} bonus points added to your weekly total!`;
+    el("bfeed").className="feed good"; el("bfeed").innerHTML=`🎁 +${gained} bonus points added to your daily total!`;
     const total=recordBonus(bonusState.name, gained);
     if(SHARED_ENDPOINT) cloudPost(WEEK_ID, bonusState.name, total, "bonus");
     burst();
@@ -852,7 +855,7 @@ function burst(){ const c=el("confetti"); c.innerHTML="";
 /* ---- leaderboard render ---- */
 function renderInto(box, list, meName){
   box.innerHTML="";
-  if(!list||!list.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">No scores yet — be the first to play this week!</div>'; return; }
+  if(!list||!list.length){ box.innerHTML='<div style="color:var(--muted);font-size:13px">No scores yet — be the first to play today!</div>'; return; }
   const medals=["🥇","🥈","🥉"]; let marked=false;
   list.slice(0,10).forEach((r,i)=>{
     const isMe=meName && !marked && String(r.name).toLowerCase()===String(meName).toLowerCase(); if(isMe) marked=true;
@@ -873,13 +876,13 @@ function groupLink(){
 function paintWinner(arr){
   if(!arr||!arr.length) return;
   const w=arr[0];
-  el("winnerBanner").innerHTML=`<span class="crown">👑</span>Last week's <b>Ace of the Week</b><br><b>${escapeHtml(w.name)}</b> — ${Number(w.score).toLocaleString()} pts <span style="color:var(--muted)">(${LAST_WEEK_LABEL})</span>`;
+  el("winnerBanner").innerHTML=`<span class="crown">👑</span>Yesterday's <b>Ace of the Day</b><br><b>${escapeHtml(w.name)}</b> — ${Number(w.score).toLocaleString()} pts <span style="color:var(--muted)">(${LAST_WEEK_LABEL})</span>`;
   el("winnerBanner").classList.remove("hidden");
 }
 function paintHomeLb(arr, live){
   if(!arr||!arr.length){ el("homeLb").classList.add("hidden"); return; }
   el("homeLbWeek").textContent=WEEK_LABEL;
-  el("homeLbSub").textContent = live ? "Live group scores this week" : "Top scores on this device this week";
+  el("homeLbSub").textContent = live ? "Live group scores today" : "Top scores on this device today";
   renderInto(el("homeLbList"), arr, null);
   el("homeLb").classList.remove("hidden");
 }
@@ -933,7 +936,7 @@ el("boardBtn").onclick=()=>{
     const mid=new Date(now); mid.setHours(24,0,0,0);             // next local midnight
     let s=Math.max(0,Math.floor((mid-now)/1000));
     const h=Math.floor(s/3600), m=Math.floor((s%3600)/60); s=s%60;
-    box.innerHTML=`⏳ New riddles in <b>${two(h)}:${two(m)}:${two(s)}</b>`;
+    box.innerHTML=`⏳ New quiz &amp; riddles in <b>${two(h)}:${two(m)}:${two(s)}</b>`;
   }
   tick(); setInterval(tick,1000);
 })();
