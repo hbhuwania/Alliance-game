@@ -130,6 +130,13 @@
   .rtag.riddle{color:#8ee9ff;background:rgba(37,224,212,.10);border:1px solid rgba(37,224,212,.5)}
 
   .q{font-size:20px;line-height:1.35;margin:14px 0 4px;font-weight:700}
+  .scram{font-size:30px;font-weight:900;letter-spacing:.28em;text-align:center;margin:18px 0 8px;
+    color:var(--cyan);text-transform:uppercase;text-shadow:0 0 18px rgba(37,224,212,.25)}
+  @media (max-width:360px){ .scram{font-size:24px;letter-spacing:.18em} }
+  .codeslots{display:flex;gap:8px;justify-content:center;margin-top:12px}
+  .codeslots span{width:32px;height:36px;border-radius:9px;border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--muted);background:#0a1120}
+  .codeslots span.on{border-color:var(--green);color:var(--green);background:rgba(58,224,140,.12)}
   .opts{display:grid;gap:10px;margin-top:14px}
   .opt{width:100%;text-align:left;padding:15px 16px;border-radius:13px;border:1px solid var(--line);
     background:#0a1120;color:var(--ink);font-size:15.5px;cursor:pointer;position:relative;
@@ -237,6 +244,7 @@
 
     <button class="btn" id="go">Enter HQ →</button>
     <button class="btn gold" id="bonusBtn">🧩 Today's Challenge (5 riddles)<span class="badgeDot hidden" id="bonusDot"></span></button>
+    <button class="btn" id="wordBtn">🔤 Word Code — unscramble to unlock The System</button>
     <button class="btn alt" id="howBtn">How to play</button>
     <br><button class="linkbtn" id="boardBtn">🌐 Group leaderboard: Off</button>
 
@@ -282,6 +290,25 @@
     <button class="btn" id="bdone">← Back to HQ</button>
   </section>
 
+  <!-- ===================== WORD CODE ===================== -->
+  <section id="word" class="card hidden">
+    <div class="hud">
+      <span class="pill">🔤 Word Code</span>
+      <span class="pill" id="wordCount">W 1 / 5</span>
+      <span class="pts" id="wordPts">+0</span>
+    </div>
+    <span class="rtag riddle">🔓 Unscramble the word · beat the clock · same set for everyone today</span>
+    <div class="timer"><i id="wtbar"></i></div>
+    <div class="codeslots" id="codeSlots"></div>
+    <div class="scram" id="scram">…</div>
+    <div class="expl show" id="whint"></div>
+    <input id="winput" type="text" maxlength="20" placeholder="Type the unscrambled word…" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+    <button class="btn" id="wsubmit">Unlock →</button>
+    <div class="feed" id="wfeed"></div>
+    <button class="btn alt hidden" id="wnext">Next word →</button>
+    <button class="btn hidden" id="wback">← Back to HQ</button>
+  </section>
+
   <!-- ===================== RESULT ===================== -->
   <section id="result" class="card center hidden">
     <div class="rankbadge" id="rankIcon">👑</div>
@@ -319,6 +346,7 @@
       • <b>🎯 Secret Mission</b> questions pay <b>double</b>. <b>🗡️ Veto</b> questions are traps — read carefully.<br><br>
       • The last question is the <b>👑 Ace of the Week</b> — worth the most points of all.<br><br>
       • <b>🧩 Today's Challenge</b>: 5 riddles every day (same for everyone), 60 seconds each — a fresh set daily, and the points add to your daily total.<br><br>
+      • <b>🔤 Word Code</b>: unscramble 5 HQ words against the clock — just like the word task on the show. Each correct word unlocks a code segment, and the points add to your daily total too.<br><br>
       • Everyone playing on the <b>same day</b> gets the <b>same questions</b>, so the leaderboard is a fair fight.
         A <b>fresh quiz unlocks automatically every day</b>, and yesterday's #1 is crowned <b>Ace of the Day</b> on the home screen.<br><br>
       • Tap the green button at the end to <b>challenge your WhatsApp group</b> to beat your score.
@@ -365,6 +393,12 @@ const BANK = [
    ex:"They enter as <b>8 duos</b> — but no alliance stays permanent."},
   {q:"Inside HQ, the only 'currency' that matters is…", opts:["Cash","Points","Immunity idols","Stars"], a:1, tier:"casual",
    ex:"Everything runs on <b>points</b>, earned through challenges."},
+  {q:"In a recent HQ challenge, players raced against the clock to unlock The System's final codes. What did the task make them do?", opts:["Unscramble words","Solve maths sums","Memorise faces","Run an obstacle course"], a:0, tier:"casual",
+   ex:"Players had to <b>unscramble words</b> — every correct word unlocked part of the final code. (Try it in Word Code!)"},
+  {q:"After a System Alert, which alliance did Arslan Goni join — leaving the Legends behind?", opts:["Warriors","Rebels","Titans","Royals"], a:0, tier:"casual",
+   ex:"Arslan Goni left the Legends and chose the <b>Warriors</b>, benching Kashish Kapoor."},
+  {q:"In Alliance, what is the name of the list of players in danger of being removed from HQ?", opts:["The 'To Be Deleted' list","The Red Zone","The Danger Bench","The Cut List"], a:0, tier:"casual",
+   ex:"Players at risk are added to the <b>'To Be Deleted'</b> list before eviction."},
   {q:"How many episodes make up the season?", opts:["24","30","42","60"], a:2, tier:"casual",
    ex:"<b>42 episodes</b> across six weeks."},
   {q:"How often do new episodes drop?", opts:["Weekly","Twice a week","Daily","Every weekend"], a:2, tier:"casual",
@@ -621,7 +655,7 @@ async function cloudGet(week){ if(!SHARED_ENDPOINT) return null;
    ENGINE
    ============================================================ */
 const el=id=>document.getElementById(id);
-function show(sec){ ["start","quiz","bonus","result","how"].forEach(id=>el(id).classList.add("hidden"));
+function show(sec){ ["start","quiz","bonus","word","result","how"].forEach(id=>el(id).classList.add("hidden"));
   el(sec).classList.remove("hidden"); el(sec).classList.add("fade");
   setTimeout(()=>el(sec).classList.remove("fade"),350); window.scrollTo(0,0); }
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
@@ -670,6 +704,112 @@ function recordDaily(name,score,diff){
   if(score>prev){ p.bonus=(p.bonus||0)+(score-prev); p.dailyDays[DATE_ID]=score; }
   p.diff=diff; writeWeek(WEEK_ID,s); markBonusDone(); return totalOf(p);
 }
+
+/* ============================================================
+   WORD CODE — daily unscramble challenge (like the HQ word task):
+   race the clock to unscramble words; each correct word unlocks
+   a segment of The System's code. Same set for everyone each day,
+   rotating without repeats. Points feed the daily leaderboard total.
+   ============================================================ */
+const WORDS=[
+  {w:"ALLIANCE",  h:"The game you're playing — and this show's name"},
+  {w:"SYSTEM",    h:"The mysterious force that runs HQ"},
+  {w:"WARRIORS",  h:"One of the teams battling inside HQ"},
+  {w:"LEGENDS",   h:"The alliance Arslan walked away from"},
+  {w:"POINTS",    h:"The only currency inside the bunker"},
+  {w:"STRATEGY",  h:"What you need to outlast The System"},
+  {w:"BETRAYAL",  h:"The heart of every veto twist"},
+  {w:"FINALIST",  h:"A player who reaches the last round"},
+  {w:"NOMINATE",  h:"To put a housemate up for eviction"},
+  {w:"KUNAL",     h:"Kemmu — the host (first name)"},
+  {w:"KUSHAL",    h:"Tandon — a fierce HQ competitor"},
+  {w:"ARSLAN",    h:"Goni who switched to the Warriors"},
+  {w:"VETO",      h:"A trap power that can flip the game"},
+  {w:"BUNKER",    h:"The sealed HQ the players live in"},
+];
+const WORD_TIME=30, WORD_BASE=120;
+let wState=null;
+function scrambleWord(word, rng){
+  const a=word.split(""); let out=word;
+  for(let tries=0; tries<50 && out===word; tries++){
+    for(let i=a.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; }
+    out=a.join("");
+  }
+  return out;
+}
+function dailyWords(){
+  const order=seededShuffle(WORDS, rngFor("WORD-ORDER-v1")); // stable order for everyone
+  const n=order.length, need=Math.min(5,n);
+  const st=((DAY_INDEX*need)%n+n)%n;
+  const picked=[]; for(let i=0;i<need;i++) picked.push(order[(st+i)%n]);
+  return picked;
+}
+function recordWord(name,score,diff){
+  const s=readWeek(WEEK_ID); const p=playerRec(s,name);
+  if(!p.wordDays) p.wordDays={};
+  const prev=p.wordDays[DATE_ID]||0;
+  if(score>prev){ p.bonus=(p.bonus||0)+(score-prev); p.wordDays[DATE_ID]=score; }
+  p.diff=diff; writeWeek(WEEK_ID,s); return totalOf(p);
+}
+function startWord(){
+  const name=getName(); try{ localStorage.setItem("allianceHQ_name",name);}catch(e){}
+  wState={ name, list:dailyWords(), i:0, score:0, solved:0, timer:null, answered:false, left:WORD_TIME };
+  const box=el("codeSlots"); box.innerHTML="";
+  wState.list.forEach(()=>{ const s=document.createElement("span"); s.textContent="🔒"; box.appendChild(s); });
+  show("word"); renderWord();
+}
+function renderWord(){
+  clearInterval(wState.timer); wState.answered=false;
+  const item=wState.list[wState.i];
+  el("wordCount").textContent=`W ${wState.i+1} / ${wState.list.length}`;
+  el("wordPts").textContent="+"+wState.score;
+  el("scram").textContent=scrambleWord(item.w, rngFor("WORD::"+DATE_ID+"::"+wState.i)).split("").join(" ");
+  el("whint").innerHTML=`💡 ${item.h} &nbsp;·&nbsp; <b>${item.w.length} letters</b>`;
+  el("wfeed").textContent=""; el("wfeed").className="feed";
+  const inp=el("winput"); inp.value=""; inp.disabled=false; try{ inp.focus(); }catch(e){}
+  el("wsubmit").classList.remove("hidden"); el("wsubmit").disabled=false;
+  el("wnext").classList.add("hidden"); el("wback").classList.add("hidden");
+  el("wtbar").style.transform="scaleX(1)"; const started=Date.now(); wState.left=WORD_TIME;
+  wState.timer=setInterval(()=>{ const e=(Date.now()-started)/1000; wState.left=Math.max(0,WORD_TIME-e);
+    el("wtbar").style.transform=`scaleX(${wState.left/WORD_TIME})`;
+    if(wState.left<=0){ clearInterval(wState.timer); if(!wState.answered) wordAnswer(true); } },100);
+}
+function wordAnswer(timeUp){
+  if(!wState||wState.answered) return; wState.answered=true; clearInterval(wState.timer);
+  const item=wState.list[wState.i];
+  const guess=(el("winput").value||"").toUpperCase().replace(/[^A-Z]/g,"");
+  const ok=!timeUp && guess===item.w;
+  el("winput").disabled=true; el("wsubmit").classList.add("hidden");
+  if(ok){
+    const speed=Math.round((wState.left/WORD_TIME)*100);
+    const gained=WORD_BASE+speed;
+    wState.score+=gained; wState.solved++;
+    const slot=el("codeSlots").children[wState.i]; if(slot){ slot.textContent="🔓"; slot.classList.add("on"); }
+    el("wfeed").className="feed good"; el("wfeed").innerHTML=`✅ <b>${item.w}</b> · +${gained} pts`;
+  } else {
+    el("wfeed").className="feed bad";
+    el("wfeed").innerHTML=timeUp?`⏱️ Time up — the word was <b>${item.w}</b>.`:`❌ Not quite — it was <b>${item.w}</b>.`;
+  }
+  el("wordPts").textContent="+"+wState.score;
+  if(wState.i>=wState.list.length-1){
+    const total=recordWord(wState.name, wState.score, difficulty);
+    if(SHARED_ENDPOINT) cloudPost(WEEK_ID, wState.name, total, "word");
+    el("wback").classList.remove("hidden");
+    el("wback").textContent=`🔓 ${wState.solved}/${wState.list.length} unlocked · ← Back to HQ`;
+  } else {
+    el("wnext").classList.remove("hidden"); try{ el("wnext").focus(); }catch(e){}
+  }
+}
+el("wordBtn").onclick=startWord;
+el("wsubmit").onclick=()=>wordAnswer(false);
+el("wnext").onclick=()=>{ wState.i++; renderWord(); };
+el("wback").onclick=()=>{ refreshHome(); show("start"); };
+el("winput").addEventListener("keydown",e=>{ if(e.key!=="Enter") return; e.preventDefault();
+  if(!wState) return;
+  if(!wState.answered){ wordAnswer(false); }
+  else if(!el("wnext").classList.contains("hidden")){ wState.i++; renderWord(); }
+});
+
 function render(){
   clearInterval(state.timer); state.answered=false;
   const item=state.list[state.i]; const type=item.type||"normal";
