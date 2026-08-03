@@ -294,7 +294,7 @@
   <section id="word" class="card hidden">
     <div class="hud">
       <span class="pill">🔤 Word Code</span>
-      <span class="pill" id="wordCount">W 1 / 5</span>
+      <span class="pill" id="wordCount">W 1 / 10</span>
       <span class="pts" id="wordPts">+0</span>
     </div>
     <span class="rtag riddle">🔓 Unscramble the word · beat the clock · same set for everyone today</span>
@@ -346,7 +346,7 @@
       • <b>🎯 Secret Mission</b> questions pay <b>double</b>. <b>🗡️ Veto</b> questions are traps — read carefully.<br><br>
       • The last question is the <b>👑 Ace of the Week</b> — worth the most points of all.<br><br>
       • <b>🧩 Today's Challenge</b>: 5 riddles every day (same for everyone), 60 seconds each — a fresh set daily, and the points add to your daily total.<br><br>
-      • <b>🔤 Word Code</b>: unscramble 5 HQ words against the clock — just like the word task on the show. Each correct word unlocks a code segment, and the points add to your daily total too.<br><br>
+      • <b>🔤 Word Code</b>: unscramble 10 words against the clock — ramping up from easy to hard, just like the word task on the show. Each correct word unlocks a code segment, and the points add to your daily total too.<br><br>
       • Everyone playing on the <b>same day</b> gets the <b>same questions</b>, so the leaderboard is a fair fight.
         A <b>fresh quiz unlocks automatically every day</b>, and yesterday's #1 is crowned <b>Ace of the Day</b> on the home screen.<br><br>
       • Tap the green button at the end to <b>challenge your WhatsApp group</b> to beat your score.
@@ -711,23 +711,19 @@ function recordDaily(name,score,diff){
    a segment of The System's code. Same set for everyone each day,
    rotating without repeats. Points feed the daily leaderboard total.
    ============================================================ */
-const WORDS=[
-  {w:"ALLIANCE",  h:"The game you're playing — and this show's name"},
-  {w:"SYSTEM",    h:"The mysterious force that runs HQ"},
-  {w:"WARRIORS",  h:"One of the teams battling inside HQ"},
-  {w:"LEGENDS",   h:"The alliance Arslan walked away from"},
-  {w:"POINTS",    h:"The only currency inside the bunker"},
-  {w:"STRATEGY",  h:"What you need to outlast The System"},
-  {w:"BETRAYAL",  h:"The heart of every veto twist"},
-  {w:"FINALIST",  h:"A player who reaches the last round"},
-  {w:"NOMINATE",  h:"To put a housemate up for eviction"},
-  {w:"KUNAL",     h:"Kemmu — the host (first name)"},
-  {w:"KUSHAL",    h:"Tandon — a fierce HQ competitor"},
-  {w:"ARSLAN",    h:"Goni who switched to the Warriors"},
-  {w:"VETO",      h:"A trap power that can flip the game"},
-  {w:"BUNKER",    h:"The sealed HQ the players live in"},
-];
-const WORD_TIME=30, WORD_BASE=120;
+/* ---- EASY TO EDIT: just add UPPERCASE, letters-only words to a tier. ----
+   Words are grouped by difficulty; each daily game draws from every tier
+   and plays them in order, so it ramps up EASY → MEDIUM → HARD.          */
+const WORD_BANK={
+  easy:   ["CODE","TEAM","GAME","RISK","TRAP","VOTE","PLAN","LOCK","RULE","DEAL","CLUE","MOVE","PACT","WORD","HERO"],
+  medium: ["PUZZLE","RIVALS","SECRET","POINTS","WINNER","PLAYER","TACTIC","MASTER","TWISTS","REVEAL","GAMBIT","VERDICT"],
+  hard:   ["STRATEGY","BETRAYAL","ALLIANCE","CHALLENGE","NEGOTIATE","ADVANTAGE","DECEPTION","ELIMINATE","CONSPIRACY","TELEVISION","REPUTATION","LEADERBOARD"],
+};
+/* How many words to draw from each tier, in play order. Sum = game length.
+   Want a longer/shorter or harder game? Just change these numbers.        */
+const WORD_PLAN=[["easy",4],["medium",3],["hard",3]];   // 4 + 3 + 3 = 10, easy → hard
+const LEVEL_META={ easy:{icon:"🟢",name:"Easy",base:90}, medium:{icon:"🟡",name:"Medium",base:130}, hard:{icon:"🔴",name:"Hard",base:170} };
+function wordTime(word){ return Math.min(45, 15 + word.length*3); }  // longer words get a little more time
 let wState=null;
 function scrambleWord(word, rng){
   const a=word.split(""); let out=word;
@@ -737,12 +733,16 @@ function scrambleWord(word, rng){
   }
   return out;
 }
+function pickTier(tier,count){
+  const list=WORD_BANK[tier]||[]; const n=list.length; if(!n) return [];
+  const order=seededShuffle(list, rngFor("WORD-ORDER-v2::"+tier)); // stable per tier for everyone
+  const need=Math.min(count,n); const st=((DAY_INDEX*need)%n+n)%n;
+  const out=[]; for(let i=0;i<need;i++) out.push({w:order[(st+i)%n], level:tier});
+  return out;   // rotates daily, no repeats until the tier is exhausted
+}
 function dailyWords(){
-  const order=seededShuffle(WORDS, rngFor("WORD-ORDER-v1")); // stable order for everyone
-  const n=order.length, need=Math.min(5,n);
-  const st=((DAY_INDEX*need)%n+n)%n;
-  const picked=[]; for(let i=0;i<need;i++) picked.push(order[(st+i)%n]);
-  return picked;
+  let picked=[]; WORD_PLAN.forEach(([tier,count])=>{ picked=picked.concat(pickTier(tier,count)); });
+  return picked;   // ordered easy → hard
 }
 function recordWord(name,score,diff){
   const s=readWeek(WEEK_ID); const p=playerRec(s,name);
@@ -753,7 +753,7 @@ function recordWord(name,score,diff){
 }
 function startWord(){
   const name=getName(); try{ localStorage.setItem("allianceHQ_name",name);}catch(e){}
-  wState={ name, list:dailyWords(), i:0, score:0, solved:0, timer:null, answered:false, left:WORD_TIME };
+  wState={ name, list:dailyWords(), i:0, score:0, solved:0, streak:0, timer:null, answered:false, left:0 };
   const box=el("codeSlots"); box.innerHTML="";
   wState.list.forEach(()=>{ const s=document.createElement("span"); s.textContent="🔒"; box.appendChild(s); });
   show("word"); renderWord();
@@ -761,17 +761,21 @@ function startWord(){
 function renderWord(){
   clearInterval(wState.timer); wState.answered=false;
   const item=wState.list[wState.i];
+  const T=wordTime(item.w); wState.qtime=T; wState.left=T;
+  const meta=LEVEL_META[item.level]||LEVEL_META.easy;
   el("wordCount").textContent=`W ${wState.i+1} / ${wState.list.length}`;
   el("wordPts").textContent="+"+wState.score;
   el("scram").textContent=scrambleWord(item.w, rngFor("WORD::"+DATE_ID+"::"+wState.i)).split("").join(" ");
-  el("whint").innerHTML=`💡 ${item.h} &nbsp;·&nbsp; <b>${item.w.length} letters</b>`;
+  let hint=`${meta.icon} ${meta.name} &nbsp;·&nbsp; <b>${item.w.length} letters</b>`;
+  if(item.level==="hard") hint+=` &nbsp;·&nbsp; starts with “${item.w[0]}”`;
+  el("whint").innerHTML=hint;
   el("wfeed").textContent=""; el("wfeed").className="feed";
   const inp=el("winput"); inp.value=""; inp.disabled=false; try{ inp.focus(); }catch(e){}
   el("wsubmit").classList.remove("hidden"); el("wsubmit").disabled=false;
   el("wnext").classList.add("hidden"); el("wback").classList.add("hidden");
-  el("wtbar").style.transform="scaleX(1)"; const started=Date.now(); wState.left=WORD_TIME;
-  wState.timer=setInterval(()=>{ const e=(Date.now()-started)/1000; wState.left=Math.max(0,WORD_TIME-e);
-    el("wtbar").style.transform=`scaleX(${wState.left/WORD_TIME})`;
+  el("wtbar").style.transform="scaleX(1)"; const started=Date.now();
+  wState.timer=setInterval(()=>{ const e=(Date.now()-started)/1000; wState.left=Math.max(0,T-e);
+    el("wtbar").style.transform=`scaleX(${wState.left/T})`;
     if(wState.left<=0){ clearInterval(wState.timer); if(!wState.answered) wordAnswer(true); } },100);
 }
 function wordAnswer(timeUp){
@@ -781,12 +785,16 @@ function wordAnswer(timeUp){
   const ok=!timeUp && guess===item.w;
   el("winput").disabled=true; el("wsubmit").classList.add("hidden");
   if(ok){
-    const speed=Math.round((wState.left/WORD_TIME)*100);
-    const gained=WORD_BASE+speed;
-    wState.score+=gained; wState.solved++;
+    const meta=LEVEL_META[item.level]||LEVEL_META.easy;
+    const speed=Math.round((wState.left/(wState.qtime||1))*100);
+    const streakBonus=wState.streak*15;
+    const gained=meta.base+speed+streakBonus;
+    wState.score+=gained; wState.solved++; wState.streak++;
     const slot=el("codeSlots").children[wState.i]; if(slot){ slot.textContent="🔓"; slot.classList.add("on"); }
-    el("wfeed").className="feed good"; el("wfeed").innerHTML=`✅ <b>${item.w}</b> · +${gained} pts`;
+    el("wfeed").className="feed good";
+    el("wfeed").innerHTML=`✅ <b>${item.w}</b> · +${gained} pts`+(wState.streak>1?` · <span class="streak">🔥 ${wState.streak}</span>`:"");
   } else {
+    wState.streak=0;
     el("wfeed").className="feed bad";
     el("wfeed").innerHTML=timeUp?`⏱️ Time up — the word was <b>${item.w}</b>.`:`❌ Not quite — it was <b>${item.w}</b>.`;
   }
